@@ -19,14 +19,11 @@ SessionLocal = None
 _engine = None
 
 
-def init_db(database_url, echo=False, auto_create=True):
+def init_db(database_url, echo=False):
     global SessionLocal, _engine
     _engine = create_engine(database_url, echo=echo)
     SessionLocal = sessionmaker(bind=_engine, expire_on_commit=False)
     Base.metadata.bind = _engine
-
-    if auto_create:
-        Base.metadata.create_all(_engine)
 
 
 def get_engine():
