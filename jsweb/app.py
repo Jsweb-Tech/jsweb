@@ -1,3 +1,4 @@
+from jsweb.database import get_engine, Base
 from jsweb.template import add_filter
 from jsweb.routing import Router
 from jsweb.request import Request
@@ -6,6 +7,7 @@ from jsweb.static import serve_static
 class JsWebApp:
     def __init__(self):
         self.router = Router()
+        self.models = []
 
     def route(self, path, methods=None):
         if methods is None:
@@ -17,6 +19,11 @@ class JsWebApp:
             add_filter(name, func)
             return func
         return decorator
+
+    def model(self, cls):
+        self.models.append(cls)
+        Base.metadata.create_all(bind=get_engine())
+        return cls
 
     def __call__(self, environ, start_response):
         req = Request(environ)

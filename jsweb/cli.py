@@ -4,6 +4,7 @@ import os
 import socket
 import sys
 
+from jsweb.codegen import next_migration_filename, generate_sql_diff
 from jsweb.server import run
 from jsweb import __VERSION__
 
@@ -29,18 +30,49 @@ def create_project(name):
     with open(os.path.join(name, "static", "global.css"), "w", encoding="utf-8") as f:
         f.write(css)
 
+    with open(os.path.join(name, "models.py"), "w", encoding="utf-8") as f:
+        f.write("""
+from jsweb.database import ModelBase, String, Integer
+
+# Example Model
+class User(ModelBase):
+    name = String()
+    email = String()
+""")
+    with open(os.path.join(name, "config.py"), "w", encoding="utf-8") as f:
+        f.write(f"""
+# config.py
+
+APP_NAME = "{name.capitalize()}"
+DEBUG = True
+VERSION = "0.1.0"
+
+# PostgreSQL (use SQLite for quickstart if needed)
+DATABASE_URL = "sqlite:///jsweb.db"
+# DATABASE_URL = "postgresql://username:password@localhost:5432/{name.lower()}"
+
+HOST = "127.0.0.1"
+PORT = 8000
+""")
     # Create app.py
     with open(os.path.join(name, "app.py"), "w", encoding="utf-8") as f:
         f.write(f"""
 from jsweb import JsWebApp, run, render, __VERSION__, html
+import config
+import models
+
 app = JsWebApp()
 
+@app.model
+class User(models.User):
+    pass
+    
 @app.route("/")
 def home(req):
-    return render("welcome.html", {{"name": "JsWeb", "version": __VERSION__}})
+    return render("welcome.html", {{"name": config.APP_NAME, "version": __VERSION__}})
 
 if __name__ == "__main__":
-    run(app)
+    run(app, host=config.HOST, port=config.PORT)
 """)
 
     print(f"✔️ Project '{name}' created successfully in the '{os.path.abspath(name)}' directory.")
@@ -97,6 +129,12 @@ def cli():
     new_cmd = sub.add_parser("new", help="Create a new JsWeb project with a basic structure.")
     new_cmd.add_argument("name", help="The name of the new project")
 
+    db_cmd = sub.add_parser("db", help="Database migration tools")
+    db_sub = db_cmd.add_subparsers(dest="subcommand")  # 👈 REQUIRED
+
+    db_sub.add_parser("makemigration", help="Generate SQL migration file based on model changes")
+    db_sub.add_parser("migrate", help="Apply pending migrations to the database")
+
     args = parser.parse_args()
 
     if args.command == "run":
@@ -125,6 +163,7 @@ def cli():
             spec = importlib.util.spec_from_file_location("app", "app.py")
             if spec is None or spec.loader is None:
                 raise ImportError("Could not load app.py")
+            sys.path.insert(0, os.getcwd())
 
             app_module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(app_module)
@@ -144,6 +183,27 @@ def cli():
 
     elif args.command == "new":
         create_project(args.name)
+    elif args.command == "db":
+        if args.subcommand == "makemigration":
+            sql = generate_sql_diff()
+            if not sql.strip():
+                print("⚠️ No changes detected.")
+            else:
+                os.makedirs("migrations", exist_ok=True)
+                filename = f"migrations/{next_migration_filename()}"
+                with open(filename, "w") as f:
+                    f.write(sql)
+                print(f"📄 Created migration file: {filename}")
+
+        elif args.subcommand == "migrate":
+            from jsweb.migrate_engine import get_applied_migrations, apply_migration_file
+
+            applied = get_applied_migrations()
+            files = sorted(os.listdir("migrations"))
+            pending = [f for f in files if f.endswith(".sql") and f not in applied]
+
+            for f in pending:
+                apply_migration_file(os.path.join("migrations", f))
 
     else:
         parser.print_help()

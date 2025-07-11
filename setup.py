@@ -12,7 +12,7 @@ with open(os.path.join("jsweb", "__init__.py"), "r") as f:
             version = "0.1.0"
             break
 
-requirements = ['jinja2']
+requirements = ['jinja2', "sqlalchemy", "psycopg2-binary"]
 with open('README.md', 'r', encoding='utf-8') as f:
     long_description = f.read()
 setup(
@@ -54,7 +54,8 @@ setup(
     },
     extras_require={
         "dev": ["watchdog", "websockets"],
-        "qr": ["qrcode[pil]"]  # Add this line for the QR feature
+        "qr": ["qrcode[pil]"],
+        "migrations": ["alembic"]
     },
     project_urls={
         "Homepage": "https://github.com/Jones-peter/jsweb",
