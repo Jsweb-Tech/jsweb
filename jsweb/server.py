@@ -1,58 +1,59 @@
-import threading
-from wsgiref.simple_server import make_server
+from jsweb.utils import get_local_ip
 import socket
-import time  # For potential delays during shutdown
+import time
+from wsgiref.simple_server import make_server
+import logging
+import sys
+from jsweb.logging_config import setup_logging
 
+setup_logging()
+logger = logging.getLogger(__name__)
 
-def get_local_ip():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        s.connect(('10.255.255.255', 1))
-        ip = s.getsockname()[0]
-    except Exception:
-        ip = '127.0.0.1'
-    finally:
-        s.close()
-    return ip
+def run(app, host="127.0.0.1", port=8000):
+    """
+    Runs the WSGI application server with a confirmation on shutdown.
+    """
+    print_startup_message = True
+    while True:
+        try:
+            with make_server(host, port, app) as httpd:
+                if print_startup_message:
+                    if host in ("0.0.0.0", "::"):
+                        local_ip = get_local_ip()
+                        logger.info("🚀 JsWeb server running on:")
+                        logger.info(f"   • http://localhost:{port}")
+                        logger.info(f"   • http://{local_ip}:{port}  (LAN access)")
+                    else:
+                        logger.info(f"🚀 JsWeb server running on http://{host}:{port}")
+                    logger.info("⏹  Press Ctrl+C to stop the server")
+                    print_startup_message = False
 
+                # This interval is key to making the server responsive to Ctrl+C.
+                httpd.serve_forever(poll_interval=0.5)
 
-def run(app, host=None, port=8000):
-    if host is None:
-        host = "127.0.0.1"
+        except KeyboardInterrupt:
+            try:
+                confirm = input("\n🛑 Do you want to stop the server? [y/N]: ").strip().lower()
+                if confirm == 'y':
+                    logger.info("✅ Server stopping...")
+                    break  # Exit the while loop to shut down.
+                else:
+                    logger.info("✅ Server restarting...")
+                    print_startup_message = True # Ensure startup message is printed again
+                    continue # Continue the while loop, restarting the server.
+            except KeyboardInterrupt:
+                # If Ctrl+C is pressed again at the prompt, just exit.
+                logger.info("🛑 Server stopped by user (Ctrl+C during prompt).")
+                break
+        except OSError as e:
+            if e.errno == 98:  # Address already in use
+                logger.error(f"\n❌ Error: Port {port} is already in use. Please try again in a moment.")
+                time.sleep(2)
+            else:
+                logger.error(f"\n❌ An unexpected startup error occurred: {e}")
+                break # Exit on other errors
+        except Exception as e:
+            logger.error(f"❌ An unexpected error occurred: {e}")
+            break
 
-    # Display local & LAN info
-    if host == "0.0.0.0":
-        local_ip = get_local_ip()
-        print("🚀 JsWeb server running on:")
-        print(f"   • http://localhost:{port}")
-        print(f"   • http://{local_ip}:{port}  (LAN access)")
-    else:
-        print(f"🚀 JsWeb server running on http://{host}:{port}")
-    print("⏹ Press Ctrl+C to stop the server")
-
-    # Start server
-    try:
-        httpd = make_server(host, port, app)
-        server_thread = threading.Thread(target=httpd.serve_forever, daemon=True)  # Important: Daemon thread
-        server_thread.start()
-
-        print("✅ Server started successfully.")
-
-        while True:  # Keep the main thread alive until interrupted
-            time.sleep(1)  # Short sleep to prevent busy-waiting
-
-    except OSError as e:
-        if e.errno == 98:  # Address already in use
-            print(f"\n❌ Error: Port {port} is already in use. Please try a different port.")
-        else:
-            print(f"\n❌ An unexpected error occurred: {e}")
-    except KeyboardInterrupt:
-        print("\n🛑 Stopping JsWeb server...")
-    finally:
-        if 'httpd' in locals():  # Ensure httpd exists before shutting down
-            print("   • Shutting down the server...")
-            httpd.shutdown()
-            print("   • Waiting for the server thread to finish...")
-        if 'server_thread' in locals() and server_thread.is_alive():
-            server_thread.join()
-        print("✅ Server stopped successfully.")
+    logger.info("✅ Server stopped successfully.")

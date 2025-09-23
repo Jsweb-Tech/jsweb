@@ -1,0 +1,15 @@
+from jsweb import JsWebApp
+import config
+
+# Import the blueprints
+from views import views_bp
+from auth import auth_bp
+
+# Create the main application instance
+app = JsWebApp(config=config)
+
+# Register the blueprints with the app
+app.register_blueprint(views_bp)
+app.register_blueprint(auth_bp)
+
+# The `jsweb run` command will automatically find and run this `app` instance.
