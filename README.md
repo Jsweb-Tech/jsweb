@@ -1,5 +1,7 @@
 <p align="center">
+<a href="https://jsweb-framework.site/" target="_blank">
   <img src="images/jsweb_logo.png" alt="JsWeb Logo" width="200">
+</a>
 </p>
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
