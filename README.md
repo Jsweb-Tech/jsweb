@@ -7,11 +7,11 @@
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 [![PyPI version](https://img.shields.io/pypi/v/jsweb)](https://pypi.org/project/jsweb/)
 
-[![GitHub](https://img.shields.io/badge/GitHub-Jones--peter-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/Jones-peter)
-[![Instagram](https://img.shields.io/badge/Instagram-jones__peter__-E4405F?style=flat-square&logo=instagram&logoColor=white)](https://www.instagram.com/jones_peter__/)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Jones--Peter-0A66C2?style=flat-square&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/jones-peter-121157221/)
-[![Website](https://img.shields.io/badge/Website-jonespeter.site-0078D4?style=flat-square&logo=google-chrome&logoColor=white)](https://jonespeter.site)
-[![Documentation](https://img.shields.io/badge/Documentation-jsweb--framework.site-blue?style=flat-square)](https://jsweb-framework.site/)
+
+[![Discord](https://gist.githubusercontent.com/cxmeel/0dbc95191f239b631c3874f4ccf114e2/raw/discord.svg)](https://discord.gg/sQHNheEW)
+[![Documentation](https://gist.githubusercontent.com/cxmeel/0dbc95191f239b631c3874f4ccf114e2/raw/documentation_learn.svg)](https://jsweb-framework.site)
+[![Sponsor](https://gist.githubusercontent.com/cxmeel/0dbc95191f239b631c3874f4ccf114e2/raw/github_sponsor.svg)](https://www.paypal.com/paypalme/jonespeter22)
+
 
 # JsWeb: A Lightweight Python Web Framework
 [Official Documentation](https://jsweb-framework.site/)
