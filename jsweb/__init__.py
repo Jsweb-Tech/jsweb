@@ -11,4 +11,4 @@ from jsweb.blueprints import Blueprint
 # Make url_for easily accessible
 from .response import url_for
 
-__VERSION__ = "1.0.0"
+__VERSION__ = "1.1.0"

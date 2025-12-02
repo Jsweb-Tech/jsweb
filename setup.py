@@ -3,7 +3,7 @@ import os
 
 from setuptools import setup, find_packages
 
-version = "1.0.0"
+version = "1.1.0"
 
 requirements = [
     'jinja2',
@@ -62,6 +62,7 @@ setup(
         "postgresql": ["psycopg2-binary"],
     },
     project_urls={
+        "Documentation": "https://jsweb-framework.site/",
         "Homepage": "https://github.com/Jones-peter/jsweb",
         "Bug Tracker": "https://github.com/Jones-peter/jsweb/issues",
     },
