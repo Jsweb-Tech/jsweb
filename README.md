@@ -499,3 +499,8 @@ The `jsweb` command-line interface provides tools for managing your project.
 *   **`jsweb db upgrade`**: Applies all pending database migrations.
 
 This documentation covers the main features of the JsWeb framework. For more detailed usage, refer to the [official documentation](https://jsweb-framework.site/), individual module docstrings, and examples within the codebase.
+
+### Contributors
+<a href="https://github.com/jones-peter/jsweb/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=jones-peter/jsweb" />
+</a>
