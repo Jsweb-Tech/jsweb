@@ -1,2 +1,0 @@
-recursive-include jsweb/templates *.html
-recursive-include jsweb/static *.css
