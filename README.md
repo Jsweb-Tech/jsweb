@@ -12,7 +12,6 @@
     <img src="https://img.shields.io/pypi/v/jsweb" alt="PyPI version"/>
   </a>
   <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"/>
-
 </p>
 
 <p align="center">
@@ -53,6 +52,12 @@ JsWeb is a minimalistic yet powerful Python web framework designed for developer
 *   **Jinja2 Templating:** Render dynamic HTML content with ease.
 *   **Static File Serving:** Built-in middleware for serving static assets.
 *   **CLI Tools:** Command-line interface for project creation, running the server, and database migrations.
+
+
+### Contributors
+<a href="https://github.com/jones-peter/jsweb/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=jones-peter/jsweb" />
+</a>
 
 ## Installation
 
@@ -524,7 +529,3 @@ The `jsweb` command-line interface provides tools for managing your project.
 
 This documentation covers the main features of the JsWeb framework. For more detailed usage, refer to the [official documentation](https://jsweb-framework.site/), individual module docstrings, and examples within the codebase.
 
-### Contributors
-<a href="https://github.com/jones-peter/jsweb/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=jones-peter/jsweb" />
-</a>
