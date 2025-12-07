@@ -23,18 +23,31 @@ class Request:
         self._is_stream_consumed = False
 
     async def stream(self):
+        """
+        Stream the request body. Can only be called once.
+        We can use body() if we need to access the body multiple times.
+        """
         if self._is_stream_consumed:
-            raise RuntimeError("Stream has already been consumed.")
-        
+            raise RuntimeError("Stream has already been consumed. Use request.body() instead.")
+
+        self._is_stream_consumed = True
         while True:
             chunk = await self.receive()
             yield chunk.get("body", b"")
             if not chunk.get("more_body", False):
                 break
-        self._is_stream_consumed = True
 
     async def body(self):
+        """
+        Get the full request body as bytes. Caches the result for reuse.
+        Safe to call multiple times.
+        """
         if self._body is None:
+            if self._is_stream_consumed:
+                raise RuntimeError(
+                    "Request stream was already consumed via stream(). "
+                    "Always use body() if you need to access the body multiple times."
+                )
             chunks = []
             async for chunk in self.stream():
                 chunks.append(chunk)
@@ -118,23 +131,47 @@ class Request:
 
 
 class UploadedFile:
+    """Represents an uploaded file from a multipart request."""
+
     def __init__(self, file_storage):
         self.file_storage = file_storage
         self.filename = file_storage.filename
         self.content_type = file_storage.content_type
+        self._cached_content = None
 
     def read(self):
-        return self.file_storage.read()
+        """Read the entire file content into memory."""
+        if self._cached_content is None:
+            self._cached_content = self.file_storage.read()
+        return self._cached_content
 
     def save(self, destination):
+        """Save the uploaded file to a destination path."""
         self.file_storage.save(destination)
 
     @property
     def size(self):
-        self.file_storage.stream.seek(0, 2)
-        size = self.file_storage.stream.tell()
-        self.file_storage.stream.seek(0) # Reset stream position after getting size
-        return size
+        """
+        Get the size of the uploaded file in bytes.
+        Handles potential stream errors gracefully.
+        """
+        try:
+            
+            current_pos = self.file_storage.stream.tell()
+            self.file_storage.stream.seek(0, 2)  
+            size = self.file_storage.stream.tell()
+            self.file_storage.stream.seek(current_pos)  
+            return size
+        except (OSError, IOError, AttributeError):
+            
+            if self._cached_content is not None:
+                return len(self._cached_content)
+            
+            try:
+                content = self.read()
+                return len(content) if content else 0
+            except Exception:
+                return 0
 
     def __repr__(self):
-        return f"<UploadedFile: {self.filename} ({self.content_type})>"
+        return f"<UploadedFile: {self.filename} ({self.content_type}, {self.size} bytes)>"

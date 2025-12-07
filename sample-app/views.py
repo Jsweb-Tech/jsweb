@@ -6,10 +6,11 @@ import os
 views_bp = Blueprint('views')
 
 @views_bp.route("/", methods=["GET", "POST"], endpoint="home")
-def home(req):
+async def home(req):
     message = ""
     if req.method == "POST":
-        message = f"Received a POST request with data: {req.form.get('test_input', 'N/A')}"
+        form_data = await req.form()
+        message = f"Received a POST request with data: {form_data.get('test_input', 'N/A')}"
 
     context = {
         "name": req.app.config.APP_NAME,
@@ -22,12 +23,12 @@ def home(req):
 
 @views_bp.route("/profile", endpoint="profile")
 @login_required
-def profile(req):
+async def profile(req):
     return render(req, "profile.html", {"req": req, "app": req.app, "library_version": __VERSION__})
 
 # JSON API Example
 @views_bp.route("/api/users", methods=["GET"], endpoint="api_users")
-def api_get_users(req):
+async def api_get_users(req):
     """Example JSON API endpoint - GET request"""
     users = [
         {"id": 1, "name": "Alice", "email": "alice@example.com"},
@@ -37,9 +38,9 @@ def api_get_users(req):
     return json({"users": users, "count": len(users)})
 
 @views_bp.route("/api/users", methods=["POST"], endpoint="api_create_user")
-def api_create_user(req):
+async def api_create_user(req):
     """Example JSON API endpoint - POST request with JSON body"""
-    data = req.json
+    data = await req.json()
 
     # Validate JSON data
     if not data.get("name") or not data.get("email"):
@@ -55,9 +56,11 @@ def api_create_user(req):
 
 # File Upload Example
 @views_bp.route("/upload", methods=["GET", "POST"], endpoint="upload")
-def upload_file(req):
+async def upload_file(req):
     """Example file upload endpoint"""
-    form = UploadForm(req.form, req.files)
+    form_data = await req.form()
+    files_data = await req.files()
+    form = UploadForm(form_data, files_data)
 
     if req.method == "POST" and form.validate():
         uploaded_file = form.file.data
