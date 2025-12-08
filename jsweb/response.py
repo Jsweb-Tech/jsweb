@@ -34,9 +34,9 @@ def configure_template_env(template_paths: Union[str, List[str]]):
 
 def url_for(req, endpoint: str, **kwargs) -> str:
     """
-    Generates a URL for the given endpoint.
+    Generates a URL for the given endpoint by delegating to the router.
     """
-    # Handle blueprint static files
+    # Handle blueprint static files separately for now
     if '.' in endpoint:
         blueprint_name, static_endpoint = endpoint.split('.', 1)
         if static_endpoint == 'static':
@@ -51,18 +51,8 @@ def url_for(req, endpoint: str, **kwargs) -> str:
         filename = kwargs.get('filename', '')
         return f"{static_url}/{filename}"
 
-    path = req.app.router.endpoints.get(endpoint)
-    if path is None:
-        raise ValueError(f"Endpoint '{endpoint}' not found.")
-
-    # Replace path parameters with values from kwargs
-    for key, value in kwargs.items():
-        path = re.sub(rf"<\w+:{key}>", str(value), path)
-
-    if "<" in path and ">" in path:
-        raise ValueError(f"Missing URL parameters for endpoint '{endpoint}': required parameters are in the path '{path}'")
-
-    return path
+    # Delegate the call to the router's url_for method
+    return req.app.router.url_for(endpoint, **kwargs)
 
 # A comprehensive mapping of common status codes to their reason phrases.
 HTTP_STATUS_CODES = {
