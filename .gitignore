@@ -64,7 +64,7 @@ venv.bak/
 
 # Uploads (for sample app)
 uploads/
-
+test/
 # OS
 .DS_Store
 Thumbs.db
