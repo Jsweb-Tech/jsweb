@@ -6,15 +6,45 @@ from .response import Forbidden
 logger = logging.getLogger(__name__)
 
 class Middleware:
+    """
+    Base class for ASGI middleware.
+
+    Args:
+        app: The ASGI application to wrap.
+    """
     def __init__(self, app):
         self.app = app
 
     async def __call__(self, scope, receive, send):
+        """
+        The ASGI application interface.
+
+        Args:
+            scope (dict): The ASGI connection scope.
+            receive (callable): An awaitable callable to receive events.
+            send (callable): An awaitable callable to send events.
+        """
         await self.app(scope, receive, send)
 
 class CSRFMiddleware(Middleware):
-    """Middleware to protect against Cross-Site Request Forgery attacks."""
+    """
+    Middleware to protect against Cross-Site Request Forgery (CSRF) attacks.
+
+    This middleware checks for a valid CSRF token in POST, PUT, PATCH, and DELETE
+    requests. It compares a token from the form data against a token stored in a cookie.
+    """
     async def __call__(self, scope, receive, send):
+        """
+        Validates the CSRF token for state-changing HTTP methods.
+
+        If validation fails, it returns a 403 Forbidden response. Otherwise, it
+        passes the request to the next application in the stack.
+
+        Args:
+            scope (dict): The ASGI connection scope.
+            receive (callable): An awaitable callable to receive events.
+            send (callable): An awaitable callable to send events.
+        """
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
@@ -35,6 +65,18 @@ class CSRFMiddleware(Middleware):
         await self.app(scope, receive, send)
 
 class StaticFilesMiddleware(Middleware):
+    """
+    Middleware for serving static files.
+
+    It intercepts requests that match the configured static URL paths for the main app
+    and any registered blueprints, and serves the corresponding file if found.
+
+    Args:
+        app: The ASGI application to wrap.
+        static_url (str): The URL prefix for the main application's static files.
+        static_dir (str): The directory path for the main application's static files.
+        blueprint_statics (list, optional): A list of blueprint static file configurations.
+    """
     def __init__(self, app, static_url, static_dir, blueprint_statics=None):
         super().__init__(app)
         self.static_url = static_url
@@ -42,12 +84,24 @@ class StaticFilesMiddleware(Middleware):
         self.blueprint_statics = blueprint_statics or []
 
     async def __call__(self, scope, receive, send):
+        """
+        Handles requests for static files.
+
+        It checks if the request path matches any of the static file URL prefixes.
+        If a match is found, it attempts to serve the file. Otherwise, it passes
+        the request to the next application.
+
+        Args:
+            scope (dict): The ASGI connection scope.
+            receive (callable): An awaitable callable to receive events.
+            send (callable): An awaitable callable to send events.
+        """
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
 
         req = scope['jsweb.request']
-        
+
         # Check blueprint static files first
         for bp in self.blueprint_statics:
             if bp.static_url_path and req.path.startswith(bp.static_url_path):
@@ -60,11 +114,26 @@ class StaticFilesMiddleware(Middleware):
             response = serve_static(req.path, self.static_url, self.static_dir)
             await response(scope, receive, send)
             return
-            
+
         await self.app(scope, receive, send)
 
 class DBSessionMiddleware(Middleware):
+    """
+    Manages the lifecycle of a database session for each HTTP request.
+
+    This middleware ensures that a SQLAlchemy session is properly handled. It commits
+    the transaction if the request is successful, rolls it back upon an exception,
+    and always removes the session at the end of the request.
+    """
     async def __call__(self, scope, receive, send):
+        """
+        Wraps the request with a database session scope.
+
+        Args:
+            scope (dict): The ASGI connection scope.
+            receive (callable): An awaitable callable to receive events.
+            send (callable): An awaitable callable to send events.
+        """
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return

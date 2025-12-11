@@ -1,77 +1,90 @@
 import re
-from typing import Dict, List, Optional, Callable
+from typing import Callable, Dict, List, Optional
 
 
 class NotFound(Exception):
-    """
-    Raised when a route is not found.
-    """
+    """Raised when a route is not found for a given path."""
     pass
 
 
 class MethodNotAllowed(Exception):
-    """
-    Raised when a method is not allowed for a route.
-    """
+    """Raised when a request method is not allowed for a matched route."""
     pass
 
 
-# We define typed converters instead of using regex
 def _int_converter(value: str) -> Optional[int]:
     """
-    Optimized integer converter using str.isdigit().
+    Converts a string to an integer. Handles negative numbers.
+
+    Args:
+        value (str): The string to convert.
+
+    Returns:
+        Optional[int]: The converted integer, or None if conversion fails.
     """
-    # we also handle negative integers
     if value.startswith('-') and value[1:].isdigit():
         return int(value)
     return int(value) if value.isdigit() else None
 
 
 def _str_converter(value: str) -> str:
-    """String passthrough - no conversion needed."""
+    """A passthrough converter for string parameters."""
     return value
 
 
 def _path_converter(value: str) -> str:
-    """Path passthrough - accepts any string including slashes."""
+    """A passthrough converter for path parameters, which can include slashes."""
     return value
 
 
 class Route:
     """
-    Represents a single route with path, handler, and parameter conversion.
+    Represents a single route, mapping a URL path to a handler function.
+
+    It compiles the path into a regular expression for efficient matching of
+    dynamic segments and handles parameter type conversion.
+
+    Attributes:
+        path (str): The URL path pattern (e.g., '/users/<int:user_id>').
+        handler (Callable): The view function to execute for this route.
+        methods (List[str]): A list of allowed HTTP methods (e.g., ['GET', 'POST']).
+        endpoint (str): A unique name for the route, used for URL generation.
+        is_static (bool): A flag indicating if the route has dynamic parameters.
     """
 
-    # We use __slots__ to reduce memory usage and to speed up attribute access
     __slots__ = ('path', 'handler', 'methods', 'endpoint', 'converters',
                  'is_static', 'regex', 'param_names')
 
-    # Class-level type converters - optimized functions instead of just type constructors
     TYPE_CONVERTERS = {
         'str': (_str_converter, r'[^/]+'),
-        'int': (_int_converter, r'-?\d+'),  # Allow optional negative sign
+        'int': (_int_converter, r'-?\d+'),
         'path': (_path_converter, r'.+?')
     }
 
     def __init__(self, path: str, handler: Callable, methods: List[str], endpoint: str):
         self.path = path
         self.handler = handler
-        self.methods = methods  # List is faster than set for small N (1-3 methods)
+        self.methods = methods
         self.endpoint = endpoint
         self.converters = {}
-        self.is_static = '<' not in path  # Flag for static routes
+        self.is_static = '<' not in path
         if not self.is_static:
             self.regex, self.param_names = self._compile_path()
         else:
             self.regex = None
             self.param_names = []
-        
 
     def _compile_path(self):
         """
-        Compiles the path into a regex and extracts parameter converters.
+        Compiles the path string into a regular expression for matching.
+
+        It extracts parameter names and their types, storing the appropriate
+        converters and building a regex that captures the dynamic parts of the URL.
+
+        Returns:
+            (re.Pattern, List[str]): A tuple containing the compiled regex and a
+                                     list of parameter names.
         """
-        
         param_defs = re.findall(r"<(\w+):(\w+)>", self.path)
         regex_path = "^" + self.path + "$"
         param_names = []
@@ -84,16 +97,23 @@ class Route:
 
         return re.compile(regex_path), param_names
 
-    def match(self, path):
+    def match(self, path: str) -> Optional[Dict[str, any]]:
         """
-        Matches the given path against the route's regex and returns converted parameters.
-        """
+        Matches the given path against the route and extracts parameters.
 
-        #For static routes, string comparison is much faster than regex
+        For static routes, it performs a simple string comparison. For dynamic routes,
+        it uses the pre-compiled regex and applies type converters to the captured values.
+
+        Args:
+            path (str): The request path to match.
+
+        Returns:
+            Optional[Dict[str, any]]: A dictionary of matched parameters if the path
+                                      matches, otherwise None.
+        """
         if self.is_static:
             return {} if path == self.path else None
-        
-        # For dynamic routes, use pre-compiled regex
+
         match = self.regex.match(path)
         if not match:
             return None
@@ -107,24 +127,36 @@ class Route:
             return None
 
 
-
 class Router:
     """
-    Handles routing by mapping URL paths to view functions and endpoint names.
+    Manages a collection of routes and resolves incoming requests to the correct handler.
+
+    It provides methods for adding routes, a decorator for registering view functions,
+    and functionality for reverse URL generation (`url_for`).
     """
+
     def __init__(self):
         self.static_routes: Dict[str, Route] = {}
         self.dynamic_routes: List[Route] = []
-        self.endpoints: Dict[str, Route] = {}  # For reverse lookups (url_for)
+        self.endpoints: Dict[str, Route] = {}
 
-
-    def add_route(self, path: str, handler: Callable, methods: Optional[List[str]]=None, endpoint: Optional[str]=None):
+    def add_route(self, path: str, handler: Callable, methods: Optional[List[str]] = None,
+                  endpoint: Optional[str] = None):
         """
         Adds a new route to the router.
+
+        Args:
+            path (str): The URL path pattern.
+            handler (Callable): The view function.
+            methods (Optional[List[str]]): A list of allowed HTTP methods. Defaults to ['GET'].
+            endpoint (Optional[str]): A unique name for the route. Defaults to the handler's name.
+
+        Raises:
+            ValueError: If the endpoint name is already registered.
         """
         if methods is None:
             methods = ["GET"]
-        
+
         if endpoint is None:
             endpoint = handler.__name__
 
@@ -137,42 +169,78 @@ class Router:
             self.static_routes[path] = route
         else:
             self.dynamic_routes.append(route)
-        
+
         self.endpoints[endpoint] = route
 
-    def route(self, path: str, methods:Optional[List[str]]=None, endpoint:Optional[str]=None):
+    def route(self, path: str, methods: Optional[List[str]] = None, endpoint: Optional[str] = None):
         """
         A decorator to register a view function for a given URL path.
+
+        Example:
+            @router.route('/users/<int:user_id>')
+            def get_user(req, user_id):
+                ...
+
+        Args:
+            path (str): The URL path pattern.
+            methods (Optional[List[str]]): A list of allowed HTTP methods.
+            endpoint (Optional[str]): A unique name for the route.
+
+        Returns:
+            Callable: The decorator.
         """
+
         def decorator(handler):
             self.add_route(path, handler, methods, endpoint)
             return handler
+
         return decorator
 
-    def resolve(self, path, method):
+    def resolve(self, path: str, method: str) -> (Callable, Dict[str, any]):
         """
-        Finds the appropriate handler for a given path and HTTP method.
+        Finds the handler and parameters for a given path and HTTP method.
+
+        It prioritizes static routes for performance.
+
+        Args:
+            path (str): The request path.
+            method (str): The HTTP request method.
+
+        Returns:
+            (Callable, Dict[str, any]): A tuple containing the matched handler and a
+                                         dictionary of URL parameters.
+
+        Raises:
+            NotFound: If no route matches the path.
+            MethodNotAllowed: If a route matches but not for the given method.
         """
-        # Static routes: O(1) dict lookup + O(k) method check (k=1-3)
         if path in self.static_routes:
             route = self.static_routes[path]
             if method in route.methods:
                 return route.handler, {}
             raise MethodNotAllowed(f"Method {method} not allowed for path {path}.")
 
-        # Dynamic routes: Check method before expensive regex matching
         for route in self.dynamic_routes:
-            if method not in route.methods:  # Quick rejection for mismatched methods
+            if method not in route.methods:
                 continue
-            # Now do the expensive regex matching
             params = route.match(path)
             if params is not None:
                 return route.handler, params
         raise NotFound(f"No route found for {path}")
 
-    def url_for(self, endpoint, **params):
+    def url_for(self, endpoint: str, **params) -> str:
         """
         Generates a URL for a given endpoint and parameters.
+
+        Args:
+            endpoint (str): The name of the endpoint to generate a URL for.
+            **params: The values for the dynamic parameters in the URL.
+
+        Returns:
+            str: The generated URL path.
+
+        Raises:
+            ValueError: If the endpoint is not found or a required parameter is missing.
         """
         if endpoint not in self.endpoints:
             raise ValueError(f"No route found for endpoint '{endpoint}'.")
@@ -186,11 +254,11 @@ class Router:
         for param_name in route.param_names:
             if param_name not in params:
                 raise ValueError(f"Missing parameter '{param_name}' for endpoint '{endpoint}'.")
-            
+
             for type_name in Route.TYPE_CONVERTERS.keys():
                 pattern = f"<{type_name}:{param_name}>"
                 if pattern in path:
                     path = path.replace(pattern, str(params[param_name]))
                     break
-        
+
         return path

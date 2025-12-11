@@ -1,16 +1,14 @@
-# D:/jones/Python/jsweb/jsweb/response.py
 import json as pyjson
 import logging
-import re
-from typing import List, Tuple, Union
-from datetime import datetime
-from jinja2 import Environment, FileSystemLoader, TemplateNotFound, select_autoescape
 import os
+import re
+from datetime import datetime
+from typing import List, Union
+
+from jinja2 import Environment, FileSystemLoader, TemplateNotFound, select_autoescape
 
 logger = logging.getLogger(__name__)
 
-# --- Script Injection ---
-# Read our native AJAX script into memory once at startup for efficiency.
 _JSWEB_SCRIPT_CONTENT = ""
 try:
     script_path = os.path.join(os.path.dirname(__file__), "static", "jsweb.js")
@@ -19,24 +17,41 @@ try:
 except FileNotFoundError:
     logger.warning("jsweb.js not found. Automatic AJAX functionality will be disabled.")
 
-# --- End Script Injection ---
-
-# Global template environment, configured by the application
 _template_env = None
 
+
 def configure_template_env(template_paths: Union[str, List[str]]):
-    """Configures the global Jinja2 template environment."""
+    """
+    Configures the global Jinja2 template environment.
+
+    Args:
+        template_paths (Union[str, List[str]]): A path or list of paths to the template directories.
+    """
     global _template_env
     _template_env = Environment(
         loader=FileSystemLoader(template_paths),
         autoescape=select_autoescape(['html', 'xml'])
     )
 
+
 def url_for(req, endpoint: str, **kwargs) -> str:
     """
-    Generates a URL for the given endpoint by delegating to the router.
+    Generates a URL for a given endpoint.
+
+    This function acts as a wrapper around the application's router, providing a
+    consistent way to generate URLs within request handlers and templates. It also
+    handles special cases for serving static files from the main app and blueprints.
+
+    Args:
+        req: The request object, used to access the application and router.
+        endpoint (str): The endpoint name, which can be a view function name or a
+                      special endpoint like 'static' or 'blueprint_name.static'.
+        **kwargs: The arguments to build the URL, including path parameters and
+                  the 'filename' for static files.
+
+    Returns:
+        str: The generated URL.
     """
-    # Handle blueprint static files separately for now
     if '.' in endpoint:
         blueprint_name, static_endpoint = endpoint.split('.', 1)
         if static_endpoint == 'static':
@@ -45,16 +60,14 @@ def url_for(req, endpoint: str, **kwargs) -> str:
                     filename = kwargs.get('filename', '')
                     return f"{bp.static_url_path}/{filename}"
 
-    # A special case for main app static files
     if endpoint == 'static':
         static_url = getattr(req.app.config, "STATIC_URL", "/static")
         filename = kwargs.get('filename', '')
         return f"{static_url}/{filename}"
 
-    # Delegate the call to the router's url_for method
     return req.app.router.url_for(endpoint, **kwargs)
 
-# A comprehensive mapping of common status codes to their reason phrases.
+
 HTTP_STATUS_CODES = {
     200: "OK",
     201: "Created",
@@ -81,7 +94,14 @@ HTTP_STATUS_CODES = {
 
 class Response:
     """
-    A base class for HTTP responses. It encapsulates the body, status, and headers.
+    A base class for HTTP responses, encapsulating the body, status code, and headers.
+
+    Args:
+        body (Union[str, bytes]): The response body.
+        status_code (int): The HTTP status code.
+        headers (dict, optional): A dictionary of response headers.
+        content_type (str, optional): The content type of the response. If not provided,
+                                      `default_content_type` is used.
     """
     default_content_type = "text/plain"
 
@@ -101,18 +121,31 @@ class Response:
             self.headers["content-type"] = final_content_type
 
     def set_cookie(
-        self,
-        key: str,
-        value: str = "",
-        max_age: int = None,
-        expires: datetime = None,
-        path: str = "/",
-        domain: str = None,
-        secure: bool = False,
-        httponly: bool = False,
-        samesite: str = 'Lax',
+            self,
+            key: str,
+            value: str = "",
+            max_age: int = None,
+            expires: datetime = None,
+            path: str = "/",
+            domain: str = None,
+            secure: bool = False,
+            httponly: bool = False,
+            samesite: str = 'Lax',
     ):
-        """Sets a cookie in the response headers."""
+        """
+        Sets a cookie in the response headers.
+
+        Args:
+            key (str): The name of the cookie.
+            value (str): The value of the cookie.
+            max_age (int, optional): The cookie's maximum age in seconds.
+            expires (datetime, optional): The cookie's expiration date.
+            path (str): The path for which the cookie is valid.
+            domain (str, optional): The domain for which the cookie is valid.
+            secure (bool): If True, the cookie is only sent over HTTPS.
+            httponly (bool): If True, the cookie is not accessible via JavaScript.
+            samesite (str): The SameSite policy ('Lax', 'Strict', 'None').
+        """
         cookie_val = f"{key}={value}"
         if max_age is not None:
             cookie_val += f"; Max-Age={max_age}"
@@ -128,21 +161,34 @@ class Response:
             cookie_val += "; Secure"
         if httponly:
             cookie_val += "; HttpOnly"
-        
-        # The 'Set-Cookie' header can appear multiple times
+
         if "Set-Cookie" in self.headers:
             self.headers["Set-Cookie"] += f"\n{cookie_val}"
         else:
             self.headers["Set-Cookie"] = cookie_val
 
-
     def delete_cookie(self, key: str, path: str = "/", domain: str = None):
-        """Deletes a cookie by setting its expiry date to the past."""
+        """
+        Deletes a cookie by setting its expiration date to the past.
+
+        Args:
+            key (str): The name of the cookie to delete.
+            path (str): The path of the cookie.
+            domain (str, optional): The domain of the cookie.
+        """
         self.set_cookie(key, expires=datetime(1970, 1, 1), path=path, domain=domain)
 
     async def __call__(self, scope, receive, send):
         """
         Sends the response to the ASGI server.
+
+        This method encodes the body, sets the content-length header if not already
+        present, and sends the response via the ASGI `send` channel.
+
+        Args:
+            scope (dict): The ASGI connection scope.
+            receive (callable): The ASGI receive channel.
+            send (callable): The ASGI send channel.
         """
         body_bytes = self.body if isinstance(self.body, bytes) else self.body.encode("utf-8")
         if "content-length" not in self.headers:
@@ -161,38 +207,49 @@ class Response:
 
 class HTMLResponse(Response):
     """
-    A specific response class for HTML content.
-    This class automatically injects the JsWeb AJAX script into full HTML pages.
+    A response class specifically for HTML content.
+
+    It automatically injects the `jsweb.js` AJAX script into full HTML documents
+    to enable seamless client-side navigation.
     """
     default_content_type = "text/html"
 
     async def __call__(self, scope, receive, send):
         """
-        Sends the response, injecting the AJAX script if it's a full HTML document.
+        Sends the HTML response, injecting the AJAX script if applicable.
+
+        The script is injected before the closing `</head>` tag of any response that
+        appears to be a full HTML document.
+
+        Args:
+            scope (dict): The ASGI connection scope.
+            receive (callable): The ASGI receive channel.
+            send (callable): The ASGI send channel.
         """
         body_str = self.body if isinstance(self.body, str) else self.body.decode("utf-8")
 
-        # Check if this is a full HTML document and not just a fragment.
-        # We also check if the script content is available.
         is_full_page = "</html>" in body_str.lower()
         if is_full_page and _JSWEB_SCRIPT_CONTENT:
-            # Inject the script right before the closing </head> tag.
-            # This is more reliable than injecting before </body>.
             script_tag = f"<script>{_JSWEB_SCRIPT_CONTENT}</script>"
             injection_point = body_str.lower().rfind("</head>")
-            
+
             if injection_point != -1:
                 body_str = body_str[:injection_point] + script_tag + body_str[injection_point:]
 
-        # Re-encode the body and call the parent's send method.
         self.body = body_str.encode("utf-8")
         await super().__call__(scope, receive, send)
 
 
 class JSONResponse(Response):
     """
-    A specific response class for JSON content.
-    It automatically handles dumping the data to a JSON string.
+    A response class for JSON content.
+
+    It automatically serializes the provided Python data structure into a JSON string.
+
+    Args:
+        data (any): The Python data to be serialized to JSON.
+        status_code (int): The HTTP status code.
+        headers (dict, optional): A dictionary of response headers.
     """
     default_content_type = "application/json"
 
@@ -208,29 +265,53 @@ class JSONResponse(Response):
 
 class RedirectResponse(Response):
     """
-    A specific response class for HTTP redirects.
+    A response class for HTTP redirects.
+
+    Args:
+        url (str): The URL to redirect to.
+        status_code (int): The HTTP status code for the redirect (e.g., 302, 301).
+        headers (dict, optional): A dictionary of response headers.
     """
+
     def __init__(
-        self,
-        url: str,
-        status_code: int = 302,  # Default to a temporary redirect
-        headers: dict = None,
+            self,
+            url: str,
+            status_code: int = 302,
+            headers: dict = None,
     ):
         super().__init__(body="", status_code=status_code, headers=headers)
         self.headers["location"] = url
 
+
 class Forbidden(Response):
-    """A specific response class for 403 Forbidden errors."""
+    """
+    A convenience response class for a 403 Forbidden error.
+
+    Args:
+        body (str): The response body, defaulting to "403 Forbidden".
+    """
+
     def __init__(self, body="403 Forbidden"):
         super().__init__(body, status_code=403, content_type="text/html")
+
 
 def render(req, template_name: str, context: dict = None) -> "HTMLResponse":
     """
     Renders a Jinja2 template into an HTMLResponse.
-    
-    If the request is an AJAX request (sent by our script), it will first
-    try to render a "partial" version of the template by looking in a
-    `partials/` subdirectory. If not found, it falls back to the main template.
+
+    This function automatically adds `url_for` and CSRF tokens to the template
+    context. It also supports rendering partial templates for AJAX requests.
+
+    Args:
+        req: The request object.
+        template_name (str): The name of the template file to render.
+        context (dict, optional): A dictionary of context variables to pass to the template.
+
+    Returns:
+        HTMLResponse: The rendered HTML response.
+
+    Raises:
+        RuntimeError: If the template environment has not been configured.
     """
     if _template_env is None:
         raise RuntimeError(
@@ -241,26 +322,21 @@ def render(req, template_name: str, context: dict = None) -> "HTMLResponse":
     if context is None:
         context = {}
 
-    # Check if this is an AJAX request from our script
     is_ajax = req.headers.get("x-requested-with") == "XMLHttpRequest"
     context['is_ajax'] = is_ajax
 
     final_template_name = template_name
     if is_ajax:
-        # Try to find a partial template first
         try:
             partial_name = os.path.join("partials", template_name)
             _template_env.get_template(partial_name)
             final_template_name = partial_name
         except TemplateNotFound:
-            # If no partial exists, we'll just render the full page
-            # and the script will swap the body.
             pass
 
     if hasattr(req, 'csrf_token'):
         context['csrf_token'] = req.csrf_token
-    
-    # Make url_for available in all templates
+
     context['url_for'] = lambda endpoint, **kwargs: url_for(req, endpoint, **kwargs)
 
     template = _template_env.get_template(final_template_name)
@@ -269,10 +345,45 @@ def render(req, template_name: str, context: dict = None) -> "HTMLResponse":
 
 
 def html(body: str, status_code: int = 200, headers: dict = None) -> HTMLResponse:
+    """
+    A shortcut function to create an HTMLResponse.
+
+    Args:
+        body (str): The HTML content.
+        status_code (int): The HTTP status code.
+        headers (dict, optional): A dictionary of response headers.
+
+    Returns:
+        HTMLResponse: The HTML response object.
+    """
     return HTMLResponse(body, status_code=status_code, headers=headers)
 
+
 def json(data: any, status_code: int = 200, headers: dict = None) -> JSONResponse:
+    """
+    A shortcut function to create a JSONResponse.
+
+    Args:
+        data (any): The Python data to be serialized to JSON.
+        status_code (int): The HTTP status code.
+        headers (dict, optional): A dictionary of response headers.
+
+    Returns:
+        JSONResponse: The JSON response object.
+    """
     return JSONResponse(data, status_code=status_code, headers=headers)
 
+
 def redirect(url: str, status_code: int = 302, headers: dict = None) -> RedirectResponse:
+    """
+    A shortcut function to create a RedirectResponse.
+
+    Args:
+        url (str): The URL to redirect to.
+        status_code (int): The HTTP status code for the redirect.
+        headers (dict, optional): A dictionary of response headers.
+
+    Returns:
+        RedirectResponse: The redirect response object.
+    """
     return RedirectResponse(url, status_code=status_code, headers=headers)

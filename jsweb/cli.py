@@ -1,46 +1,50 @@
 import argparse
+import getpass
+import importlib.util
 import logging
 import os
+import shutil
 import socket
 import sys
-import time
-import subprocess
 import secrets
-import importlib.util
-import shutil
-import getpass
 
 from alembic import command
 from alembic.autogenerate import produce_migrations
 from alembic.config import Config
-from alembic.operations.ops import AddColumnOp, DropColumnOp, AlterColumnOp, CreateTableOp, DropTableOp
+from alembic.operations.ops import AddColumnOp, AlterColumnOp, CreateTableOp, DropColumnOp, DropTableOp
 from alembic.runtime.migration import MigrationContext
 from alembic.script import ScriptDirectory
-from sqlalchemy import create_engine
-
 from jinja2 import Environment, FileSystemLoader
+from sqlalchemy import create_engine
 
 from jsweb import __VERSION__
 from jsweb.app import JsWebApp
+from jsweb.logging_config import setup_logging
 from jsweb.server import run
 from jsweb.utils import get_local_ip
-from jsweb.logging_config import setup_logging
 
 setup_logging()
 logger = logging.getLogger(__name__)
 
-# --- Define framework-internal paths ---
 JSWEB_DIR = os.path.dirname(__file__)
 PROJECT_TEMPLATES_DIR = os.path.join(JSWEB_DIR, "project_templates")
 HTML_TEMPLATES_DIR = os.path.join(JSWEB_DIR, "templates")
 STATIC_DIR = os.path.join(JSWEB_DIR, "static")
 
+
 class ConfigObject:
     """A simple object to hold configuration settings."""
     pass
 
+
 def load_config():
-    """Loads configuration from config.py and overrides with environment variables."""
+    """
+    Loads configuration from a 'config.py' file in the current working directory.
+
+    This function reads the configuration file, populates a ConfigObject with its settings,
+    and then overrides these settings with any environment variables prefixed with 'JSWEB_'.
+    It will exit the application if the 'config.py' file cannot be found or loaded.
+    """
     config_path = os.path.join(os.getcwd(), "config.py")
     if not os.path.exists(config_path):
         logger.error("❌ Error: config.py not found in the current directory.")
@@ -57,10 +61,9 @@ def load_config():
 
     config = ConfigObject()
     for key in dir(user_config_module):
-        if key.isupper(): # Convention for config variables
+        if key.isupper():
             setattr(config, key, getattr(user_config_module, key))
 
-    # Override with environment variables
     for key, value in os.environ.items():
         if key.startswith("JSWEB_"):
             config_key = key[len("JSWEB_"):]
@@ -75,21 +78,31 @@ def load_config():
                         setattr(config, config_key, value)
                     logger.info(f"⚙️  Config override: {config_key} = {getattr(config, config_key)} (from environment variable)")
                 except ValueError:
-                    logger.warning(f"⚠️  Could not convert environment variable JSWEB_{config_key}='{value}' to type of original value ({type(original_value).__name__}). Keeping original value.")
+                    logger.warning(
+                        f"⚠️  Could not convert environment variable JSWEB_{config_key}='{value}' to type of original value ({type(original_value).__name__}). Keeping original value.")
 
     return config
 
+
 def create_project(name):
-    """Creates a new project with a feature-rich, multi-blueprint structure."""
+    """
+    Creates a new JsWeb project with a default directory structure and starter files.
+
+    This function generates a new project directory and populates it with essential
+    subdirectories ('templates', 'static') and files. It copies standard HTML templates
+    and static assets, and renders Python source files from Jinja templates, including a
+    'config.py' with a securely generated secret key.
+
+    Args:
+        name (str): The name of the project to create.
+    """
     project_dir = os.path.abspath(name)
     templates_dest_dir = os.path.join(project_dir, "templates")
     static_dest_dir = os.path.join(project_dir, "static")
 
-    # Create project directories
     os.makedirs(templates_dest_dir, exist_ok=True)
     os.makedirs(static_dest_dir, exist_ok=True)
 
-    # --- Copy HTML templates and static files (text files) ---
     text_files_to_copy = {
         os.path.join(HTML_TEMPLATES_DIR, "starter_template.html"): os.path.join(templates_dest_dir, "welcome.html"),
         os.path.join(HTML_TEMPLATES_DIR, "login.html"): os.path.join(templates_dest_dir, "login.html"),
@@ -103,7 +116,6 @@ def create_project(name):
         with open(dest, "w", encoding="utf-8") as f_dest:
             f_dest.write(content)
 
-    # --- Copy binary files (images) ---
     binary_files_to_copy = {
         os.path.join(STATIC_DIR, "jsweb_logo.png"): os.path.join(static_dest_dir, "jsweb_logo.png"),
         os.path.join(STATIC_DIR, "jsweb_logo_bg.png"): os.path.join(static_dest_dir, "jsweb_logo_bg.png"),
@@ -114,9 +126,8 @@ def create_project(name):
         with open(dest, "wb") as f_dest:
             f_dest.write(content)
 
-    # --- Render Python files from Jinja templates ---
     env = Environment(loader=FileSystemLoader(PROJECT_TEMPLATES_DIR), autoescape=False)
-    
+
     templates_to_render = {
         "app.py.jinja": os.path.join(project_dir, "app.py"),
         "views.py.jinja": os.path.join(project_dir, "views.py"),
@@ -129,7 +140,6 @@ def create_project(name):
         with open(dest_path, "w", encoding="utf-8") as f:
             f.write(template.render())
 
-    # Render config.py separately as it needs context
     config_template = env.get_template("config.py.jinja")
     with open(os.path.join(project_dir, "config.py"), "w", encoding="utf-8") as f:
         f.write(config_template.render(project_name=name, secret_key=secrets.token_hex(16)))
@@ -140,6 +150,16 @@ def create_project(name):
 
 
 def check_port(host, port):
+    """
+    Checks if a given network port is available to bind to.
+
+    Args:
+        host (str): The host address to check.
+        port (int): The port number to check.
+
+    Returns:
+        bool: True if the port is available, False otherwise.
+    """
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind((host, port))
@@ -149,6 +169,15 @@ def check_port(host, port):
 
 
 def display_qr_code(url):
+    """
+    Displays a QR code in the terminal for the given URL.
+
+    This function uses the 'qrcode' library to generate and print a QR code
+    that allows easy access to the server from a mobile device on the same network.
+
+    Args:
+        url (str): The URL to encode in the QR code.
+    """
     import qrcode
     qr = qrcode.QRCode()
     qr.add_data(url)
@@ -160,17 +189,18 @@ def display_qr_code(url):
 
 def setup_alembic_if_needed():
     """
-    Initializes the Alembic migration environment using pre-packaged templates.
-    This is more robust than running 'alembic init' and patching files.
+    Initializes the Alembic migration environment if it's not already set up.
+
+    This function checks for the existence of the 'migrations/env.py' file. If not found,
+    it creates the necessary directory structure and copies pre-configured Alembic
+    template files into the project, ensuring a consistent migration setup.
     """
     migrations_dir = os.path.join(os.getcwd(), "migrations")
     if not os.path.exists(os.path.join(migrations_dir, "env.py")):
         logger.info("⚙️  Initializing migration environment...")
 
-        # Create the migrations directory and its subdirectories
         os.makedirs(os.path.join(migrations_dir, "versions"), exist_ok=True)
 
-        # Copy our pre-configured templates
         alembic_template_dir = os.path.join(PROJECT_TEMPLATES_DIR, "alembic")
         shutil.copy(
             os.path.join(alembic_template_dir, "env.py"),
@@ -188,6 +218,16 @@ def setup_alembic_if_needed():
 
 
 def get_alembic_config(db_url):
+    """
+    Loads and configures the Alembic configuration for database migrations.
+
+    Args:
+        db_url (str): The database connection URL.
+
+    Returns:
+        alembic.config.Config: The configured Alembic Config object, or None if the
+                               configuration file does not exist.
+    """
     config_path = "migrations/config.ini"
     if not os.path.exists(config_path):
         return None
@@ -200,6 +240,15 @@ def get_alembic_config(db_url):
 
 
 def is_db_up_to_date(config):
+    """
+    Checks if the database schema is up-to-date with the latest migration script.
+
+    Args:
+        config (alembic.config.Config): The Alembic configuration object.
+
+    Returns:
+        bool: True if the database is at the latest revision, False otherwise.
+    """
     engine = create_engine(config.get_main_option("sqlalchemy.url"))
     try:
         with engine.connect() as conn:
@@ -213,6 +262,16 @@ def is_db_up_to_date(config):
 
 
 def has_model_changes(database_url, metadata):
+    """
+    Detects if there are differences between SQLAlchemy models and the database schema.
+
+    Args:
+        database_url (str): The database connection URL.
+        metadata (sqlalchemy.schema.MetaData): The SQLAlchemy MetaData object for the models.
+
+    Returns:
+        bool: True if changes are detected, False otherwise.
+    """
     from sqlalchemy import create_engine
     from alembic.runtime.migration import MigrationContext
     from alembic.autogenerate import compare_metadata
@@ -224,6 +283,21 @@ def has_model_changes(database_url, metadata):
 
 
 def preview_model_changes_readable(database_url, metadata):
+    """
+    Generates a human-readable summary of detected database schema changes.
+
+    Compares the current SQLAlchemy model definitions against the database schema and
+    produces a list of strings describing the required changes (e.g., create table,
+    add column).
+
+    Args:
+        database_url (str): The database connection URL.
+        metadata (sqlalchemy.schema.MetaData): The SQLAlchemy MetaData object for the models.
+
+    Returns:
+        list[str] or None: A list of strings describing the changes, or None if no
+                           changes are detected.
+    """
     engine = create_engine(database_url)
     with engine.connect() as conn:
         context = MigrationContext.configure(conn)
@@ -244,11 +318,18 @@ def preview_model_changes_readable(database_url, metadata):
                 changes.append(f"Unhandled change: {op.__class__.__name__}")
         return changes if changes else None
 
+
 def create_admin_user():
-    """Interactively creates an admin user."""
+    """
+    Interactively creates a new administrative user in the database.
+
+    This function prompts the user for a username, email, and password. It then
+    validates the input, checks for existing users, and creates a new user with
+    administrative privileges.
+    """
     logger.info("Creating a new admin user...")
-    from jsweb.database import init_db, db_session
-    
+    from jsweb.database import db_session, init_db
+
     config = load_config()
     init_db(config.DATABASE_URL)
 
@@ -267,7 +348,7 @@ def create_admin_user():
         if User.query.filter_by(username=username).first():
             logger.error(f"❌ User with username '{username}' already exists.")
             return
-        
+
         if User.query.filter_by(email=email).first():
             logger.error(f"❌ User with email '{email}' already exists.")
             return
@@ -275,9 +356,9 @@ def create_admin_user():
         admin = User(username=username, email=email, is_admin=True)
         admin.set_password(password)
         admin.save()
-        
-        db_session.commit() # Manually commit the transaction for the CLI command
-        
+
+        db_session.commit()
+
         logger.info(f"✅ Admin user '{username}' created successfully.")
 
     except ImportError:
@@ -286,10 +367,17 @@ def create_admin_user():
         db_session.rollback()
         logger.error(f"❌ An error occurred: {e}")
     finally:
-        db_session.remove() # Ensure the session is closed
+        db_session.remove()
 
 
 def cli():
+    """
+    The main entry point for the JsWeb command-line interface.
+
+    This function parses command-line arguments and executes the corresponding
+    actions, such as running the development server, creating a new project,
+    or managing database migrations.
+    """
     parser = argparse.ArgumentParser(prog="jsweb", description="JsWeb CLI - A lightweight Python web framework.")
     parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {__VERSION__}")
     sub = parser.add_subparsers(dest="command", help="Available commands", required=True)
@@ -334,27 +422,23 @@ def cli():
                 if isinstance(obj, JsWebApp):
                     app_instance = obj
                     break
-            
+
             if not app_instance:
                 raise AttributeError("Could not find an instance of JsWebApp in your app.py file.")
 
-            # Replace the app's initial config with the fully loaded one
             app_instance.config = config
-            app_instance._init_from_config() # Re-initialize with the new config
+            app_instance._init_from_config()
 
             from jsweb.database import init_db
             init_db(config.DATABASE_URL)
 
-            # Automatically setup OpenAPI documentation (unless disabled in config)
             if getattr(config, 'ENABLE_OPENAPI_DOCS', True):
                 try:
                     from jsweb.docs import setup_openapi_docs
                     from jsweb.docs.introspection import introspect_app_routes
 
-                    # Introspect routes first
                     introspect_app_routes(app_instance)
 
-                    # Setup docs with config values or defaults
                     setup_openapi_docs(
                         app_instance,
                         title=getattr(config, 'API_TITLE', 'jsweb API'),
@@ -365,7 +449,6 @@ def cli():
                         openapi_url=getattr(config, 'OPENAPI_JSON_URL', '/openapi.json'),
                     )
                 except ImportError:
-                    # Pydantic not installed, skip OpenAPI setup
                     pass
                 except Exception as e:
                     logger.warning(f"⚠️  Could not setup OpenAPI docs: {e}")

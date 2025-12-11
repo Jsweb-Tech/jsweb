@@ -13,30 +13,30 @@ class JsWebApp:
     The main application class for the JsWeb framework.
     """
     def __init__(self, config):
+        """
+        Initialize the JsWebApp instance.
+
+        :param config: Configuration object containing settings like SECRET_KEY, TEMPLATE_FOLDER, etc.
+        """
         self.router = Router()
         self.template_filters = {}
         self.config = config
         self.blueprints_with_static_files = []
-        self._init_from_config()  # Initial setup
+        self._init_from_config()
 
     def _init_from_config(self):
         """Initializes components that depend on the config."""
         template_paths = []
 
-        # Add the user's template folder
         if hasattr(self.config, "TEMPLATE_FOLDER") and hasattr(self.config, "BASE_DIR"):
             user_template_path = os.path.join(self.config.BASE_DIR, self.config.TEMPLATE_FOLDER)
             if os.path.isdir(user_template_path):
                 template_paths.append(user_template_path)
 
-        # Add the library's main template folder
         lib_template_path = os.path.join(os.path.dirname(__file__), "templates")
         if os.path.isdir(lib_template_path):
             template_paths.append(lib_template_path)
             
-        # The admin templates are now self-contained in the admin package,
-        # so we no longer add them to the main app's template paths.
-
         if template_paths:
             configure_template_env(template_paths)
 
@@ -44,11 +44,22 @@ class JsWebApp:
             init_auth(self.config.SECRET_KEY, self._get_actual_user_loader())
 
     def _get_actual_user_loader(self):
+        """
+        Retrieves the user loader callback.
+        
+        :return: The user loader function.
+        """
         if hasattr(self, '_user_loader_callback') and self._user_loader_callback:
             return self._user_loader_callback
         return self.user_loader
 
     def user_loader(self, user_id: int):
+        """
+        Default user loader that attempts to load a user from a 'models' module.
+        
+        :param user_id: The ID of the user to load.
+        :return: The User object or None.
+        """
         try:
             from models import User
             return User.query.get(user_id)
@@ -56,10 +67,22 @@ class JsWebApp:
             return None
 
     def route(self, path, methods=None, endpoint=None):
+        """
+        Decorator to register a new route.
+
+        :param path: The URL path.
+        :param methods: List of HTTP methods allowed.
+        :param endpoint: Optional endpoint name.
+        :return: The decorator function.
+        """
         return self.router.route(path, methods, endpoint)
 
     def register_blueprint(self, blueprint: Blueprint):
-        """Registers a blueprint with the application."""
+        """
+        Registers a blueprint with the application.
+
+        :param blueprint: The Blueprint instance to register.
+        """
         for path, handler, methods, endpoint in blueprint.routes:
             full_path = path
             if blueprint.url_prefix:
@@ -72,12 +95,25 @@ class JsWebApp:
             self.blueprints_with_static_files.append(blueprint)
 
     def filter(self, name):
+        """
+        Decorator to register a custom template filter.
+
+        :param name: The name of the filter to use in templates.
+        :return: The decorator function.
+        """
         def decorator(func):
             self.template_filters[name] = func
             return func
         return decorator
 
     async def _asgi_app_handler(self, scope, receive, send):
+        """
+        Internal ASGI handler for processing requests.
+
+        :param scope: The ASGI scope.
+        :param receive: The ASGI receive channel.
+        :param send: The ASGI send channel.
+        """
         req = scope['jsweb.request']
         try:
             handler, params = self.router.resolve(req.path, req.method)
@@ -95,7 +131,6 @@ class JsWebApp:
             return
 
         if handler:    
-            # Support both sync and async handlers
             if asyncio.iscoroutinefunction(handler):
                 response = await handler(req, **params)
             else:
@@ -107,8 +142,6 @@ class JsWebApp:
             if not isinstance(response, Response):
                 raise TypeError(f"View function did not return a Response object (got {type(response).__name__})")
 
-        
-
         if hasattr(req, 'new_csrf_token_generated') and req.new_csrf_token_generated:
             response.set_cookie("csrf_token", req.csrf_token, httponly=False, samesite='Lax')
 
@@ -116,8 +149,14 @@ class JsWebApp:
 
 
     async def __call__(self, scope, receive, send):
+        """
+        The ASGI application entry point.
+
+        :param scope: The ASGI scope.
+        :param receive: The ASGI receive channel.
+        :param send: The ASGI send channel.
+        """
         if scope["type"] != "http":
-            # For now, we only support http
             return
 
         req = Request(scope, receive, self)
@@ -136,9 +175,6 @@ class JsWebApp:
         static_url = getattr(self.config, "STATIC_URL", "/static")
         static_dir = getattr(self.config, "STATIC_DIR", "static")
         
-        # The middleware needs to be ASGI compatible.
-        # This will require rewriting the middleware classes.
-        # For now, I will assume they are ASGI compatible.
         handler = self._asgi_app_handler
         handler = DBSessionMiddleware(handler)
         handler = StaticFilesMiddleware(handler, static_url, static_dir, blueprint_statics=self.blueprints_with_static_files)
