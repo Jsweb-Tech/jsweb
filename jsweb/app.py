@@ -3,7 +3,7 @@ import os
 import asyncio
 from .routing import Router, NotFound, MethodNotAllowed
 from .request import Request
-from .response import Response, HTMLResponse, configure_template_env
+from .response import Response, HTMLResponse, configure_template_env, JSONResponse
 from .auth import init_auth, get_current_user
 from .middleware import StaticFilesMiddleware, DBSessionMiddleware, CSRFMiddleware
 from .blueprints import Blueprint
@@ -79,9 +79,23 @@ class JsWebApp:
 
     async def _asgi_app_handler(self, scope, receive, send):
         req = scope['jsweb.request']
+
         try:
             handler, params = self.router.resolve(req.path, req.method)
-            
+        except NotFound as e:
+            response = JSONResponse({"error": str(e)}, status_code=404)
+            await response(scope, receive, send)
+            return
+        except MethodNotAllowed as e:
+            response = JSONResponse({"error": str(e)}, status_code=405)
+            await response(scope, receive, send)
+            return
+        except Exception as e:
+            response = JSONResponse({"error": "Internal Server Error"}, status_code=500)
+            await response(scope, receive, send)
+            return
+
+        if handler:
             # Support both sync and async handlers
             if asyncio.iscoroutinefunction(handler):
                 response = await handler(req, **params)
@@ -94,17 +108,11 @@ class JsWebApp:
             if not isinstance(response, Response):
                 raise TypeError(f"View function did not return a Response object (got {type(response).__name__})")
 
-        except NotFound:
-            response = HTMLResponse("<h1>404 Not Found</h1>", status_code=404)
-        except MethodNotAllowed:
-            response = HTMLResponse("<h1>405 Method Not Allowed</h1>", status_code=405)
-        except Exception as e:
-            response = HTMLResponse(f"<h1>500 Internal Server Error</h1><p>{e}</p>", status_code=500)
+            if hasattr(req, 'new_csrf_token_generated') and req.new_csrf_token_generated:
+                response.set_cookie("csrf_token", req.csrf_token, httponly=False, samesite='Lax')
 
-        if hasattr(req, 'new_csrf_token_generated') and req.new_csrf_token_generated:
-            response.set_cookie("csrf_token", req.csrf_token, httponly=False, samesite='Lax')
-
-        await response(scope, receive, send)
+            await response(scope, receive, send)
+            return
 
 
     async def __call__(self, scope, receive, send):
