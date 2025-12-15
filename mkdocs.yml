@@ -1,0 +1,68 @@
+site_name: JsWeb
+site_url: https://jsweb-tech.github.io/jsweb/
+repo_url: https://github.com/Jsweb-Tech/jsweb
+repo_name: Jsweb-Tech/jsweb
+
+theme:
+  name: material
+  custom_dir: overrides
+  language: en
+  logo: https://github.com/Jsweb-Tech/jsweb/blob/main/images/jsweb_logo_bg.png?raw=true
+  favicon: https://github.com/Jsweb-Tech/jsweb/blob/main/images/jsweb_logo_bg.png?raw=true
+  palette:
+    # Palette toggle for dark vs light mode (Default)
+    - scheme: slate
+      primary: blue
+      accent: pink
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+    # Palette toggle for light vs dark mode
+    - scheme: default
+      primary: blue
+      accent: pink
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - toc.integrate
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - content.code.annotation
+    - content.code.copy
+
+extra_css:
+  - stylesheets/extra.css
+
+nav:
+    - 'Home': 'index.md'
+    - 'User Guide':
+        - 'Getting Started': 'getting-started.md'
+        - 'Project Structure': 'project-structure.md'
+        - 'Configuration': 'configuration.md'
+        - 'Routing': 'routing.md'
+        - 'Templating': 'templating.md'
+        - 'Forms': 'forms.md'
+        - 'Database': 'database.md'
+        - 'Blueprints': 'blueprints.md'
+        - 'Admin': 'admin.md'
+    - 'Command-Line Interface': 'cli.md'
+    - 'OpenAPI Guide': 'JSWEB_OPENAPI_GUIDE.md'
+
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true

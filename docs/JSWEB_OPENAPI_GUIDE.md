@@ -2,20 +2,20 @@
 
 **Fast, secure, automatic API documentation with NestJS-style control**
 
-## 🎯 Overview
+## Overview
 
 The jsweb OpenAPI system provides:
 
-✅ **Hybrid Architecture**: Pydantic internally (fast validation), jsweb API externally (clean, consistent)
-✅ **Automatic Generation**: OpenAPI 3.0 schemas generated automatically
-✅ **NestJS-Style Decorators**: Fine-grained control over documentation
-✅ **Multiple UIs**: Swagger UI, ReDoc, and RapiDoc support
-✅ **Framework-Wide Validation**: Automatic request/response validation
-✅ **Zero Boilerplate**: One function call to enable docs
+- ✅ **Hybrid Architecture**: Pydantic internally (fast validation), jsweb API externally (clean, consistent)
+- ✅ **Automatic Generation**: OpenAPI 3.0 schemas generated automatically
+- ✅ **NestJS-Style Decorators**: Fine-grained control over documentation
+- ✅ **Multiple UIs**: Swagger UI, ReDoc, and RapiDoc support
+- ✅ **Framework-Wide Validation**: Automatic request/response validation
+- ✅ **Zero Boilerplate**: One function call to enable docs
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Define DTOs (Data Transfer Objects)
 
@@ -151,7 +151,7 @@ Start your app and visit:
 
 ---
 
-## 📚 Complete API Reference
+## Complete API Reference
 
 ### DTO System
 
@@ -471,7 +471,7 @@ add_security_scheme(
 
 ---
 
-## 🎨 Advanced Examples
+## Advanced Examples
 
 ### Example 1: CRUD API with Validation
 
@@ -603,7 +603,7 @@ async def upload_file(req):
 
 ---
 
-## 🔧 Configuration Options
+## Configuration Options
 
 ### Customizing URLs
 
@@ -642,7 +642,7 @@ setup_openapi_docs(
 
 ---
 
-## 🚀 Migration Guide
+## Migration Guide
 
 ### For Existing Routes
 
@@ -675,7 +675,7 @@ async def health(req):
 
 ---
 
-## 🎯 Best Practices
+## Best Practices
 
 ### 1. Always Define DTOs
 
@@ -724,7 +724,7 @@ Field(
 
 ---
 
-## 🔒 Security Best Practices
+## Security Best Practices
 
 ### JWT Authentication
 
@@ -733,7 +733,7 @@ add_security_scheme(
     "bearer_auth",
     type="http",
     scheme="bearer",
-    bearerFormat="JWT"
+    bearer_format="JWT"
 )
 
 @api_security("bearer_auth")
@@ -767,7 +767,7 @@ async def highly_protected_route(req):
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ### Accessing OpenAPI Spec Programmatically
 
@@ -802,11 +802,9 @@ except ValidationError as e:
 
 ---
 
-## 📖 Additional Resources
+## Additional Resources
 
 - **OpenAPI Specification**: https://swagger.io/specification/
 - **Swagger UI**: https://swagger.io/tools/swagger-ui/
 - **ReDoc**: https://redocly.github.io/redoc/
 - **Pydantic Documentation**: https://docs.pydantic.dev/
-
-

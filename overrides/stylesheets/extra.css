@@ -1,0 +1,15 @@
+/* Fix the footer to the bottom */
+.md-footer {
+    position: sticky;
+    bottom: 0;
+    width: 100%;
+    background-color: var(--md-footer-bg-color);
+    z-index: 1;
+}
+
+/* Keep the site name visible on scroll */
+.md-header__topic:not([hidden]) {
+    display: flex;
+    align-items: center;
+    margin-left: .4rem;
+}

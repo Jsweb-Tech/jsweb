@@ -1,5 +1,6 @@
 import re
 from typing import Callable, Dict, List, Optional
+import uuid
 
 
 class NotFound(Exception):
@@ -25,6 +26,38 @@ def _int_converter(value: str) -> Optional[int]:
     if value.startswith('-') and value[1:].isdigit():
         return int(value)
     return int(value) if value.isdigit() else None
+
+
+def _float_converter(value: str) -> Optional[float]:
+    """
+    Converts a string to a float.
+
+    Args:
+        value (str): The string to convert.
+
+    Returns:
+        Optional[float]: The converted float, or None if conversion fails.
+    """
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return None
+
+
+def _uuid_converter(value: str) -> Optional[uuid.UUID]:
+    """
+    Converts a string to a UUID.
+
+    Args:
+        value (str): The string to convert.
+
+    Returns:
+        Optional[uuid.UUID]: The converted UUID, or None if conversion fails.
+    """
+    try:
+        return uuid.UUID(value)
+    except ValueError:
+        return None
 
 
 def _str_converter(value: str) -> str:
@@ -58,6 +91,8 @@ class Route:
     TYPE_CONVERTERS = {
         'str': (_str_converter, r'[^/]+'),
         'int': (_int_converter, r'-?\d+'),
+        'float': (_float_converter, r'-?\d+(\.\d+)?'),
+        'uuid': (_uuid_converter, r'[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'),
         'path': (_path_converter, r'.+?')
     }
 
