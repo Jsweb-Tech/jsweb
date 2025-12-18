@@ -1,0 +1,69 @@
+name: Discord PR Notifier
+
+on:
+  pull_request:
+    types: [opened, reopened, closed]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send PR info to Discord
+        env:
+          DISCORD_WEBHOOK_URL_4: ${{ secrets.DISCORD_WEBHOOK_URL_4 }}
+        run: |
+          ACTION="${{ github.event.action }}"
+          MERGED="${{ github.event.pull_request.merged }}"
+
+          # Ignore closed but not merged PRs
+          if [ "$ACTION" = "closed" ] && [ "$MERGED" != "true" ]; then
+            exit 0
+          fi
+
+          if [ "$ACTION" = "opened" ]; then
+            TITLE="🆕 Pull Request Opened"
+            COLOR=3447003
+          elif [ "$ACTION" = "reopened" ]; then
+            TITLE="🔄 Pull Request Reopened"
+            COLOR=16776960
+          else
+            TITLE="✅ Pull Request Merged"
+            COLOR=3066993
+          fi
+
+          curl -X POST "$DISCORD_WEBHOOK_URL_4" \
+            -H "Content-Type: application/json" \
+            -d @- << EOF
+          {
+            "username": "GitHub PR Bot",
+            "avatar_url": "https://github.com/github.png",
+            "embeds": [
+              {
+                "title": "$TITLE",
+                "url": "${{ github.event.pull_request.html_url }}",
+                "description": "**${{ github.event.pull_request.title }}**",
+                "color": $COLOR,
+                "author": {
+                  "name": "${{ github.event.pull_request.user.login }}",
+                  "url": "${{ github.event.pull_request.user.html_url }}",
+                  "icon_url": "${{ github.event.pull_request.user.avatar_url }}"
+                },
+                "fields": [
+                  {
+                    "name": "Base → Head",
+                    "value": "${{ github.event.pull_request.base.ref }} → ${{ github.event.pull_request.head.ref }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Repository",
+                    "value": "${{ github.repository }}",
+                    "inline": true
+                  }
+                ],
+                "footer": {
+                  "text": "JsWeb Framework • Pull Requests"
+                }
+              }
+            ]
+          }
+          EOF
