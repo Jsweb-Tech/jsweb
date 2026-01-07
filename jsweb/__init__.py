@@ -28,4 +28,4 @@ from jsweb.blueprints import Blueprint
 
 from .response import url_for
 
-__VERSION__ = "1.2.0"
+__VERSION__ = "1.2.1"
