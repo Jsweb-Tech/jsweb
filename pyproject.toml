@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "jsweb"
-version = "1.2.0"
+version = "1.2.1"
 description = "JsWeb - A lightweight and modern Python web framework designed for speed and simplicity."
 readme = "README.md"
 requires-python = ">=3.8"
