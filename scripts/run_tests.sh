@@ -33,7 +33,7 @@ pip install -e ".[dev]"
 
 # Run tests
 echo -e "${YELLOW}Running tests...${NC}"
-pytest Tests/ -v --cov=jsweb --cov-report=html --cov-report=term-missing
+pytest 
 
 # Check exit code
 if [ $? -eq 0 ]; then

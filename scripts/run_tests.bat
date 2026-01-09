@@ -31,7 +31,7 @@ REM Run tests
 echo.
 echo Running tests...
 echo.
-pytest Tests/ -v --cov=jsweb --cov-report=html --cov-report=term-missing
+pytest 
 
 REM Check exit code
 if %ERRORLEVEL% EQU 0 (
