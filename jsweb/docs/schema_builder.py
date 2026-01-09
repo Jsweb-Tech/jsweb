@@ -3,6 +3,7 @@ OpenAPI 3.0 schema builder
 
 Generates complete OpenAPI specification from registry metadata.
 """
+from __future__ import annotations
 
 import re
 from typing import Any
