@@ -230,7 +230,7 @@ class FileField(Field):
 
 
 class Form:
-    """A collection of fields that can be validated and rendered."""
+    """A collection of fields that can be validated and rendered"""
 
     def __init__(self, formdata=None, files=None, **kwargs):
         self.formdata = formdata or {}
