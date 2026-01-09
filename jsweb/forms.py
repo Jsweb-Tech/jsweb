@@ -196,8 +196,9 @@ class RadioField(Field):
             if checked:
                 radio_attrs['checked'] = 'checked'
 
+            radio_attrs_str = " ".join(f'{k}="{v}"' for k, v in radio_attrs.items())
             html.append('<li>')
-            html.append(f'<input {" ".join(f"{k}=\"{v}\"" for k, v in radio_attrs.items())}>')
+            html.append(f'<input {radio_attrs_str}>')
             html.append(f'<label for="{option_id}">{label}</label>')
             html.append('</li>')
         html.append('</ul>')
