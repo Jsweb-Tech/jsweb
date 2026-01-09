@@ -39,13 +39,14 @@ async def openapi_json_handler(req):
     # Import jsweb's json response
     try:
         from jsweb.response import JSONResponse
+
         return JSONResponse(spec)
     except ImportError:
         # Fallback for testing
         return {
-            'status': 200,
-            'headers': {'Content-Type': 'application/json'},
-            'body': json_module.dumps(spec)
+            "status": 200,
+            "headers": {"Content-Type": "application/json"},
+            "body": json_module.dumps(spec),
         }
 
 
@@ -108,14 +109,11 @@ async def swagger_ui_handler(req):
     # Import jsweb's HTML response
     try:
         from jsweb.response import HTMLResponse
+
         return HTMLResponse(html)
     except ImportError:
         # Fallback for testing
-        return {
-            'status': 200,
-            'headers': {'Content-Type': 'text/html'},
-            'body': html
-        }
+        return {"status": 200, "headers": {"Content-Type": "text/html"}, "body": html}
 
 
 async def redoc_handler(req):
@@ -157,14 +155,11 @@ async def redoc_handler(req):
     # Import jsweb's HTML response
     try:
         from jsweb.response import HTMLResponse
+
         return HTMLResponse(html)
     except ImportError:
         # Fallback for testing
-        return {
-            'status': 200,
-            'headers': {'Content-Type': 'text/html'},
-            'body': html
-        }
+        return {"status": 200, "headers": {"Content-Type": "text/html"}, "body": html}
 
 
 async def rapidoc_handler(req):
@@ -198,10 +193,7 @@ async def rapidoc_handler(req):
 
     try:
         from jsweb.response import HTMLResponse
+
         return HTMLResponse(html)
     except ImportError:
-        return {
-            'status': 200,
-            'headers': {'Content-Type': 'text/html'},
-            'body': html
-        }
+        return {"status": 200, "headers": {"Content-Type": "text/html"}, "body": html}

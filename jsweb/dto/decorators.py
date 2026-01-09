@@ -4,16 +4,18 @@ from dataclasses import dataclass, field as dataclass_field
 
 from .core import FieldMetadata, ModelT
 
+
 @dataclass
 class FieldConfig:
     """
     Configuration for a DTO field with runtime and OpenAPI metadata.
     """
-    #validation constraints
+
+    # validation constraints
     gt: Optional[float] = None
     ge: Optional[float] = None
     lt: Optional[float] = None
-    le:Optional[float] = None
+    le: Optional[float] = None
     multiple_of: Optional[float] = None
     min_length: Optional[int] = None
     max_length: Optional[int] = None
@@ -36,14 +38,14 @@ class FieldConfig:
     write_only: bool = False
     nullable: bool = False
 
-    #custom OpenAPI extensions
+    # custom OpenAPI extensions
     custom_props: Dict[str, Any] = dataclass_field(default_factory=dict)
 
-    #others
+    # others
     alias: Optional[str] = None
     alias_priority: Optional[int] = 0
     discriminator: Optional[str] = None
-    union_mode:str = 'smart'
+    union_mode: str = "smart"
 
 
 class FieldInfoRegistry:

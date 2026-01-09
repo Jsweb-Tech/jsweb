@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 def app():
     """Create a basic jsweb application for testing."""
     from jsweb import App
-    
+
     app = App(__name__)
     app.config.TESTING = True
     return app
@@ -30,13 +30,14 @@ def client(app):
 @pytest.fixture
 def config():
     """Provide a test configuration."""
+
     class TestConfig:
         DEBUG = True
         TESTING = True
         SECRET_KEY = "test-secret-key"
         DATABASE_URL = "sqlite:///:memory:"
         SQLALCHEMY_ECHO = False
-        
+
     return TestConfig()
 
 
@@ -53,39 +54,35 @@ def sample_form_data():
 @pytest.fixture
 def sample_json_data():
     """Provide sample JSON data for testing."""
-    return {
-        "name": "Test User",
-        "email": "test@example.com",
-        "age": 30,
-        "active": True
-    }
+    return {"name": "Test User", "email": "test@example.com", "age": 30, "active": True}
 
 
 @pytest.fixture
 def fake_environ():
     """Provide a fake WSGI environ dict for request testing."""
+
     def _make_environ(
-        method='GET',
-        path='/',
-        query_string='',
-        content_type='application/x-www-form-urlencoded',
+        method="GET",
+        path="/",
+        query_string="",
+        content_type="application/x-www-form-urlencoded",
         content_length=0,
-        body=b'',
-        cookies=''
+        body=b"",
+        cookies="",
     ):
         return {
-            'REQUEST_METHOD': method,
-            'CONTENT_TYPE': content_type,
-            'CONTENT_LENGTH': str(content_length),
-            'PATH_INFO': path,
-            'QUERY_STRING': query_string,
-            'HTTP_COOKIE': cookies,
-            'wsgi.input': BytesIO(body),
-            'SERVER_NAME': 'testserver',
-            'SERVER_PORT': '80',
-            'wsgi.url_scheme': 'http',
+            "REQUEST_METHOD": method,
+            "CONTENT_TYPE": content_type,
+            "CONTENT_LENGTH": str(content_length),
+            "PATH_INFO": path,
+            "QUERY_STRING": query_string,
+            "HTTP_COOKIE": cookies,
+            "wsgi.input": BytesIO(body),
+            "SERVER_NAME": "testserver",
+            "SERVER_PORT": "80",
+            "wsgi.url_scheme": "http",
         }
-    
+
     return _make_environ
 
 
@@ -93,52 +90,52 @@ def fake_environ():
 def json_request_environ(fake_environ):
     """Create a JSON POST request environ."""
     import json
-    
+
     data = {"key": "value", "number": 42}
-    body = json.dumps(data).encode('utf-8')
-    
+    body = json.dumps(data).encode("utf-8")
+
     return fake_environ(
-        method='POST',
-        path='/api/test',
-        content_type='application/json',
+        method="POST",
+        path="/api/test",
+        content_type="application/json",
         content_length=len(body),
-        body=body
+        body=body,
     )
 
 
 @pytest.fixture
 def form_request_environ(fake_environ):
     """Create a form POST request environ."""
-    body = b'username=testuser&email=test@example.com'
-    
+    body = b"username=testuser&email=test@example.com"
+
     return fake_environ(
-        method='POST',
-        path='/form',
-        content_type='application/x-www-form-urlencoded',
+        method="POST",
+        path="/form",
+        content_type="application/x-www-form-urlencoded",
         content_length=len(body),
-        body=body
+        body=body,
     )
 
 
 @pytest.fixture
 def file_upload_environ(fake_environ):
     """Create a file upload request environ."""
-    boundary = '----WebKitFormBoundary'
+    boundary = "----WebKitFormBoundary"
     body = (
-        f'--{boundary}\r\n'
+        f"--{boundary}\r\n"
         f'Content-Disposition: form-data; name="file"; filename="test.txt"\r\n'
-        f'Content-Type: text/plain\r\n'
-        f'\r\n'
-        f'test file content\r\n'
-        f'--{boundary}--\r\n'
-    ).encode('utf-8')
-    
+        f"Content-Type: text/plain\r\n"
+        f"\r\n"
+        f"test file content\r\n"
+        f"--{boundary}--\r\n"
+    ).encode("utf-8")
+
     return fake_environ(
-        method='POST',
-        path='/upload',
-        content_type=f'multipart/form-data; boundary={boundary}',
+        method="POST",
+        path="/upload",
+        content_type=f"multipart/form-data; boundary={boundary}",
         content_length=len(body),
-        body=body
+        body=body,
     )
 
 
@@ -149,23 +146,12 @@ def pytest_configure(config):
         "markers", "unit: Unit tests that test individual components"
     )
     config.addinivalue_line(
-        "markers", "integration: Integration tests that test multiple components together"
+        "markers",
+        "integration: Integration tests that test multiple components together",
     )
-    config.addinivalue_line(
-        "markers", "slow: Tests that take a long time to run"
-    )
-    config.addinivalue_line(
-        "markers", "asyncio: Async tests"
-    )
-    config.addinivalue_line(
-        "markers", "forms: Form validation tests"
-    )
-    config.addinivalue_line(
-        "markers", "routing: Routing tests"
-    )
-    config.addinivalue_line(
-        "markers", "database: Database tests"
-    )
-    config.addinivalue_line(
-        "markers", "security: Security tests"
-    )
+    config.addinivalue_line("markers", "slow: Tests that take a long time to run")
+    config.addinivalue_line("markers", "asyncio: Async tests")
+    config.addinivalue_line("markers", "forms: Form validation tests")
+    config.addinivalue_line("markers", "routing: Routing tests")
+    config.addinivalue_line("markers", "database: Database tests")
+    config.addinivalue_line("markers", "security: Security tests")

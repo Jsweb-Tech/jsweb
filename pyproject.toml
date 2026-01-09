@@ -142,3 +142,19 @@ skip_empty = true
 
 [tool.coverage.html]
 directory = "htmlcov"
+
+[tool.black]
+line-length = 88
+target-version = ["py38"]
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | venv
+  | build
+  | dist
+  | __pycache__
+)/
+'''
+

@@ -9,8 +9,8 @@ def test_database_connection():
     """Test database connection initialization."""
     try:
         from jsweb.database import Database
-        
-        db = Database('sqlite:///:memory:')
+
+        db = Database("sqlite:///:memory:")
         assert db is not None
     except (ImportError, TypeError):
         pytest.skip("Database class not available or requires setup")
@@ -21,7 +21,7 @@ def test_database_connection():
 def test_sqlalchemy_import():
     """Test that SQLAlchemy is available."""
     from sqlalchemy import create_engine, Column, Integer, String
-    
+
     assert create_engine is not None
     assert Column is not None
 
@@ -33,17 +33,17 @@ def test_model_definition():
     try:
         from sqlalchemy import Column, Integer, String
         from sqlalchemy.orm import declarative_base
-        
+
         Base = declarative_base()
-        
+
         class User(Base):
-            __tablename__ = 'users'
+            __tablename__ = "users"
             id = Column(Integer, primary_key=True)
             username = Column(String(80), unique=True, nullable=False)
             email = Column(String(120), unique=True, nullable=False)
-        
+
         assert User is not None
-        assert hasattr(User, '__tablename__')
+        assert hasattr(User, "__tablename__")
     except ImportError:
         pytest.skip("SQLAlchemy not available")
 
@@ -55,23 +55,23 @@ def test_model_relationships():
     try:
         from sqlalchemy import Column, Integer, String, ForeignKey
         from sqlalchemy.orm import declarative_base, relationship
-        
+
         Base = declarative_base()
-        
+
         class Author(Base):
-            __tablename__ = 'authors'
+            __tablename__ = "authors"
             id = Column(Integer, primary_key=True)
             name = Column(String(100))
-        
+
         class Book(Base):
-            __tablename__ = 'books'
+            __tablename__ = "books"
             id = Column(Integer, primary_key=True)
             title = Column(String(100))
-            author_id = Column(Integer, ForeignKey('authors.id'))
+            author_id = Column(Integer, ForeignKey("authors.id"))
             author = relationship("Author")
-        
+
         assert Book is not None
-        assert hasattr(Book, 'author')
+        assert hasattr(Book, "author")
     except ImportError:
         pytest.skip("SQLAlchemy relationships not available")
 
@@ -83,13 +83,13 @@ def test_database_session():
     try:
         from sqlalchemy import create_engine
         from sqlalchemy.orm import sessionmaker
-        
-        engine = create_engine('sqlite:///:memory:')
+
+        engine = create_engine("sqlite:///:memory:")
         Session = sessionmaker(bind=engine)
         session = Session()
-        
+
         assert session is not None
-        assert hasattr(session, 'query')
+        assert hasattr(session, "query")
     except ImportError:
         pytest.skip("SQLAlchemy not available")
 
@@ -101,15 +101,15 @@ def test_model_validation():
     try:
         from sqlalchemy import Column, Integer, String, CheckConstraint
         from sqlalchemy.orm import declarative_base
-        
+
         Base = declarative_base()
-        
+
         class Product(Base):
-            __tablename__ = 'products'
+            __tablename__ = "products"
             id = Column(Integer, primary_key=True)
             name = Column(String(100), nullable=False)
             price = Column(Integer)
-        
+
         assert Product is not None
     except ImportError:
         pytest.skip("SQLAlchemy not available")
@@ -122,7 +122,7 @@ def test_migration_support():
     try:
         from alembic import command
         from alembic.config import Config
-        
+
         assert command is not None
         assert Config is not None
     except ImportError:
@@ -136,19 +136,19 @@ def test_model_inheritance():
     try:
         from sqlalchemy import Column, Integer, String
         from sqlalchemy.orm import declarative_base
-        
+
         Base = declarative_base()
-        
+
         class BaseModel(Base):
             __abstract__ = True
             id = Column(Integer, primary_key=True)
-        
+
         class User(BaseModel):
-            __tablename__ = 'users'
+            __tablename__ = "users"
             username = Column(String(80))
-        
+
         assert User is not None
-        assert hasattr(User, 'id')
+        assert hasattr(User, "id")
     except ImportError:
         pytest.skip("SQLAlchemy not available")
 
@@ -160,14 +160,14 @@ def test_model_indexes():
     try:
         from sqlalchemy import Column, Integer, String, Index
         from sqlalchemy.orm import declarative_base
-        
+
         Base = declarative_base()
-        
+
         class User(Base):
-            __tablename__ = 'users'
+            __tablename__ = "users"
             id = Column(Integer, primary_key=True)
             email = Column(String(120), index=True)
-        
+
         assert User is not None
     except ImportError:
         pytest.skip("SQLAlchemy not available")
@@ -180,15 +180,15 @@ def test_model_constraints():
     try:
         from sqlalchemy import Column, Integer, String, UniqueConstraint
         from sqlalchemy.orm import declarative_base
-        
+
         Base = declarative_base()
-        
+
         class User(Base):
-            __tablename__ = 'users'
+            __tablename__ = "users"
             id = Column(Integer, primary_key=True)
             username = Column(String(80), unique=True)
             email = Column(String(120), unique=True)
-        
+
         assert User is not None
     except ImportError:
         pytest.skip("SQLAlchemy not available")
@@ -202,15 +202,15 @@ def test_model_default_values():
         from sqlalchemy import Column, Integer, String, DateTime
         from sqlalchemy.orm import declarative_base
         from datetime import datetime
-        
+
         Base = declarative_base()
-        
+
         class Post(Base):
-            __tablename__ = 'posts'
+            __tablename__ = "posts"
             id = Column(Integer, primary_key=True)
             title = Column(String(100))
             created_at = Column(DateTime, default=datetime.utcnow)
-        
+
         assert Post is not None
     except ImportError:
         pytest.skip("SQLAlchemy not available")
@@ -223,15 +223,15 @@ def test_nullable_fields():
     try:
         from sqlalchemy import Column, Integer, String
         from sqlalchemy.orm import declarative_base
-        
+
         Base = declarative_base()
-        
+
         class User(Base):
-            __tablename__ = 'users'
+            __tablename__ = "users"
             id = Column(Integer, primary_key=True)
             username = Column(String(80), nullable=False)
             phone = Column(String(20), nullable=True)
-        
+
         assert User is not None
     except ImportError:
         pytest.skip("SQLAlchemy not available")
@@ -244,17 +244,17 @@ def test_model_repr():
     try:
         from sqlalchemy import Column, Integer, String
         from sqlalchemy.orm import declarative_base
-        
+
         Base = declarative_base()
-        
+
         class User(Base):
-            __tablename__ = 'users'
+            __tablename__ = "users"
             id = Column(Integer, primary_key=True)
             username = Column(String(80))
-            
+
             def __repr__(self):
                 return f"<User {self.username}>"
-        
+
         assert User is not None
     except ImportError:
         pytest.skip("SQLAlchemy not available")
@@ -268,19 +268,19 @@ def test_enum_field():
         from sqlalchemy import Column, Integer, String, Enum
         from sqlalchemy.orm import declarative_base
         import enum
-        
+
         Base = declarative_base()
-        
+
         class UserRole(enum.Enum):
-            ADMIN = 'admin'
-            USER = 'user'
-            GUEST = 'guest'
-        
+            ADMIN = "admin"
+            USER = "user"
+            GUEST = "guest"
+
         class User(Base):
-            __tablename__ = 'users'
+            __tablename__ = "users"
             id = Column(Integer, primary_key=True)
             role = Column(Enum(UserRole))
-        
+
         assert User is not None
     except ImportError:
         pytest.skip("SQLAlchemy Enum not available")
@@ -293,14 +293,14 @@ def test_json_field():
     try:
         from sqlalchemy import Column, Integer, JSON
         from sqlalchemy.orm import declarative_base
-        
+
         Base = declarative_base()
-        
+
         class User(Base):
-            __tablename__ = 'users'
+            __tablename__ = "users"
             id = Column(Integer, primary_key=True)
             extra_data = Column(JSON)
-        
+
         assert User is not None
     except ImportError:
         pytest.skip("SQLAlchemy JSON type not available")
@@ -313,14 +313,14 @@ def test_text_field():
     try:
         from sqlalchemy import Column, Integer, Text
         from sqlalchemy.orm import declarative_base
-        
+
         Base = declarative_base()
-        
+
         class BlogPost(Base):
-            __tablename__ = 'blog_posts'
+            __tablename__ = "blog_posts"
             id = Column(Integer, primary_key=True)
             content = Column(Text)
-        
+
         assert BlogPost is not None
     except ImportError:
         pytest.skip("SQLAlchemy not available")
@@ -333,25 +333,27 @@ def test_many_to_many_relationship():
     try:
         from sqlalchemy import Column, Integer, String, ForeignKey, Table
         from sqlalchemy.orm import declarative_base, relationship
-        
+
         Base = declarative_base()
-        
+
         # Association table
-        user_roles = Table('user_roles', Base.metadata,
-            Column('user_id', Integer, ForeignKey('users.id')),
-            Column('role_id', Integer, ForeignKey('roles.id'))
+        user_roles = Table(
+            "user_roles",
+            Base.metadata,
+            Column("user_id", Integer, ForeignKey("users.id")),
+            Column("role_id", Integer, ForeignKey("roles.id")),
         )
-        
+
         class User(Base):
-            __tablename__ = 'users'
+            __tablename__ = "users"
             id = Column(Integer, primary_key=True)
             roles = relationship("Role", secondary=user_roles)
-        
+
         class Role(Base):
-            __tablename__ = 'roles'
+            __tablename__ = "roles"
             id = Column(Integer, primary_key=True)
             name = Column(String(50))
-        
+
         assert User is not None
         assert Role is not None
     except ImportError:

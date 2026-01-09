@@ -26,7 +26,7 @@ class OpenAPISchemaBuilder:
         contact: Dict[str, str] = None,
         license_info: Dict[str, str] = None,
         servers: List[Dict[str, str]] = None,
-        tags: List[Dict[str, Any]] = None
+        tags: List[Dict[str, Any]] = None,
     ):
         """
         Initialize schema builder.
@@ -62,7 +62,7 @@ class OpenAPISchemaBuilder:
             "info": self._build_info(),
             "servers": self.servers,
             "paths": self._build_paths(),
-            "components": self._build_components()
+            "components": self._build_components(),
         }
 
         if self.tags:
@@ -136,8 +136,7 @@ class OpenAPISchemaBuilder:
         # Parameters
         if metadata.parameters:
             operation["parameters"] = [
-                self._build_parameter(param)
-                for param in metadata.parameters
+                self._build_parameter(param) for param in metadata.parameters
             ]
 
         # Request body
@@ -149,19 +148,19 @@ class OpenAPISchemaBuilder:
                     metadata.request_body.content_type: {
                         "schema": metadata.request_body.schema
                     }
-                }
+                },
             }
 
         # Responses
         if metadata.responses:
             operation["responses"] = {}
             for status_code, response in metadata.responses.items():
-                operation["responses"][str(status_code)] = self._build_response(response)
+                operation["responses"][str(status_code)] = self._build_response(
+                    response
+                )
         else:
             # Default response if none specified
-            operation["responses"] = {
-                "200": {"description": "Successful response"}
-            }
+            operation["responses"] = {"200": {"description": "Successful response"}}
 
         # Security
         if metadata.security:
@@ -224,4 +223,4 @@ class OpenAPISchemaBuilder:
             /files/<path:filepath> -> /files/{filepath}
             /posts/<id> -> /posts/{id}
         """
-        return re.sub(r'<(?:\w+:)?(\w+)>', r'{\1}', jsweb_path)
+        return re.sub(r"<(?:\w+:)?(\w+)>", r"{\1}", jsweb_path)

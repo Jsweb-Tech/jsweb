@@ -9,7 +9,7 @@ from io import BytesIO
 def test_import_new_features():
     """Test that all new features can be imported."""
     from jsweb import UploadedFile, FileField, FileRequired, FileAllowed, FileSize
-    
+
     assert UploadedFile is not None
     assert FileField is not None
     assert FileRequired is not None
@@ -27,27 +27,27 @@ async def test_json_request_parsing():
         class config:
             pass
 
-    body = json.dumps({'name': 'Alice', 'email': 'alice@example.com'})
-    content = body.encode('utf-8')
+    body = json.dumps({"name": "Alice", "email": "alice@example.com"})
+    content = body.encode("utf-8")
 
     app = FakeApp()
     scope = {
-        'type': 'http',
-        'method': 'POST',
-        'path': '/',
-        'query_string': b'',
-        'headers': [(b'content-type', b'application/json')],
+        "type": "http",
+        "method": "POST",
+        "path": "/",
+        "query_string": b"",
+        "headers": [(b"content-type", b"application/json")],
     }
-    
+
     async def receive():
-        return {'body': content, 'more_body': False}
+        return {"body": content, "more_body": False}
 
     req = Request(scope, receive, app)
     data = await req.json()
 
-    assert data == {'name': 'Alice', 'email': 'alice@example.com'}
-    assert data['name'] == 'Alice'
-    assert data['email'] == 'alice@example.com'
+    assert data == {"name": "Alice", "email": "alice@example.com"}
+    assert data["name"] == "Alice"
+    assert data["email"] == "alice@example.com"
 
 
 @pytest.mark.unit
@@ -60,27 +60,27 @@ async def test_json_parsing_with_numbers():
         class config:
             pass
 
-    body = json.dumps({'count': 42, 'active': True, 'items': [1, 2, 3]})
-    content = body.encode('utf-8')
+    body = json.dumps({"count": 42, "active": True, "items": [1, 2, 3]})
+    content = body.encode("utf-8")
 
     app = FakeApp()
     scope = {
-        'type': 'http',
-        'method': 'POST',
-        'path': '/',
-        'query_string': b'',
-        'headers': [(b'content-type', b'application/json')],
+        "type": "http",
+        "method": "POST",
+        "path": "/",
+        "query_string": b"",
+        "headers": [(b"content-type", b"application/json")],
     }
-    
+
     async def receive():
-        return {'body': content, 'more_body': False}
+        return {"body": content, "more_body": False}
 
     req = Request(scope, receive, app)
     data = await req.json()
 
-    assert data['count'] == 42
-    assert data['active'] is True
-    assert data['items'] == [1, 2, 3]
+    assert data["count"] == 42
+    assert data["active"] is True
+    assert data["items"] == [1, 2, 3]
 
 
 @pytest.mark.unit
@@ -90,20 +90,23 @@ def test_filefield_creation():
     from jsweb.validators import FileRequired, FileAllowed, FileSize
 
     class TestForm(Form):
-        upload = FileField('Upload File', validators=[
-            FileRequired(),
-            FileAllowed(['jpg', 'png']),
-            FileSize(max_size=1024*1024)  # 1MB
-        ])
+        upload = FileField(
+            "Upload File",
+            validators=[
+                FileRequired(),
+                FileAllowed(["jpg", "png"]),
+                FileSize(max_size=1024 * 1024),  # 1MB
+            ],
+        )
 
     form = TestForm()
     assert form is not None
-    assert hasattr(form, 'upload')
+    assert hasattr(form, "upload")
     assert len(form.upload.validators) == 3
     validator_names = [v.__class__.__name__ for v in form.upload.validators]
-    assert 'FileRequired' in validator_names
-    assert 'FileAllowed' in validator_names
-    assert 'FileSize' in validator_names
+    assert "FileRequired" in validator_names
+    assert "FileAllowed" in validator_names
+    assert "FileSize" in validator_names
 
 
 @pytest.mark.unit
@@ -119,13 +122,13 @@ def test_fileallowed_validator_accepts_valid_extensions():
         def __init__(self, filename):
             self.data = MockFile(filename)
 
-    validator = FileAllowed(['jpg', 'png', 'gif'])
-    
+    validator = FileAllowed(["jpg", "png", "gif"])
+
     # Should not raise for valid extensions
-    field = MockField('test.jpg')
+    field = MockField("test.jpg")
     validator(None, field)  # Should not raise
-    
-    field = MockField('image.png')
+
+    field = MockField("image.png")
     validator(None, field)  # Should not raise
 
 
@@ -142,9 +145,9 @@ def test_fileallowed_validator_rejects_invalid_extensions():
         def __init__(self, filename):
             self.data = MockFile(filename)
 
-    validator = FileAllowed(['jpg', 'png'])
-    field = MockField('script.exe')
-    
+    validator = FileAllowed(["jpg", "png"])
+    field = MockField("script.exe")
+
     with pytest.raises(ValidationError):
         validator(None, field)
 
@@ -163,11 +166,11 @@ def test_filesize_validator_accepts_small_files():
             self.data = MockFile(size)
 
     validator = FileSize(max_size=1000)
-    
+
     # Should not raise for small files
     field = MockField(500)
     validator(None, field)  # Should not raise
-    
+
     field = MockField(1000)  # Exactly at limit
     validator(None, field)  # Should not raise
 
@@ -187,7 +190,7 @@ def test_filesize_validator_rejects_large_files():
 
     validator = FileSize(max_size=1000)
     field = MockField(2000)
-    
+
     with pytest.raises(ValidationError):
         validator(None, field)
 
@@ -202,12 +205,12 @@ def test_filerequired_validator():
             self.data = data
 
     validator = FileRequired()
-    
+
     # Should raise when no file provided
     field = MockField(None)
     with pytest.raises(ValidationError):
         validator(None, field)
-    
+
     # Should not raise when file provided
     field = MockField("dummy_file")
     validator(None, field)  # Should not raise

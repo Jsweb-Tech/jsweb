@@ -12,7 +12,7 @@ from .ui_handlers import (
     openapi_json_handler,
     swagger_ui_handler,
     redoc_handler,
-    rapidoc_handler
+    rapidoc_handler,
 )
 from .introspection import introspect_app_routes
 from .registry import openapi_registry
@@ -26,7 +26,7 @@ def configure_openapi(
     contact: Dict[str, str] = None,
     license_info: Dict[str, str] = None,
     servers: List[Dict[str, str]] = None,
-    tags: List[Dict[str, Any]] = None
+    tags: List[Dict[str, Any]] = None,
 ) -> OpenAPISchemaBuilder:
     """
     Configure OpenAPI documentation settings.
@@ -72,7 +72,7 @@ def configure_openapi(
         contact=contact,
         license_info=license_info,
         servers=servers,
-        tags=tags
+        tags=tags,
     )
 
     set_builder(builder)
@@ -90,7 +90,7 @@ def setup_openapi_docs(
     rapidoc_url: str = None,
     openapi_url: str = "/openapi.json",
     security_schemes: Dict[str, Dict] = None,
-    **kwargs
+    **kwargs,
 ):
     """
     One-line setup for OpenAPI documentation.
@@ -138,12 +138,7 @@ def setup_openapi_docs(
             app.run(port=8000)
     """
     # Configure OpenAPI schema builder
-    configure_openapi(
-        title=title,
-        version=version,
-        description=description,
-        **kwargs
-    )
+    configure_openapi(title=title, version=version, description=description, **kwargs)
 
     # Register security schemes if provided
     if security_schemes:
@@ -186,7 +181,7 @@ def add_security_scheme(
     scheme: str = None,
     bearer_format: str = None,
     flows: Dict = None,
-    **kwargs
+    **kwargs,
 ):
     """
     Add a security scheme to the OpenAPI spec.
@@ -232,10 +227,7 @@ def add_security_scheme(
             }
         )
     """
-    security_scheme = {
-        "type": type,
-        **kwargs
-    }
+    security_scheme = {"type": type, **kwargs}
 
     if scheme:
         security_scheme["scheme"] = scheme

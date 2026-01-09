@@ -34,7 +34,7 @@ class Field:
     @property
     def label(self):
         """Returns a Label object for the field."""
-        return Label(self.name, self._label_text or self.name.replace('_', ' ').title())
+        return Label(self.name, self._label_text or self.name.replace("_", " ").title())
 
     def process_formdata(self, value):
         """Coerce the form data to the appropriate Python type."""
@@ -52,20 +52,21 @@ class Field:
 
     def __call__(self, **kwargs):
         """Render the field as an HTML input."""
-        kwargs.setdefault('id', self.name)
-        kwargs.setdefault('name', self.name)
-        kwargs.setdefault('type', 'text')
+        kwargs.setdefault("id", self.name)
+        kwargs.setdefault("name", self.name)
+        kwargs.setdefault("type", "text")
 
         value = self.data if self.data is not None else self.default
         if value is not None:
-            kwargs.setdefault('value', str(value))
+            kwargs.setdefault("value", str(value))
 
-        attributes = ' '.join(f'{key}="{value}"' for key, value in kwargs.items())
-        return Markup(f'<input {attributes}>')
+        attributes = " ".join(f'{key}="{value}"' for key, value in kwargs.items())
+        return Markup(f"<input {attributes}>")
 
 
 class StringField(Field):
     """A standard text input field."""
+
     pass
 
 
@@ -74,7 +75,7 @@ class PasswordField(Field):
 
     def __call__(self, **kwargs):
         """Render the field as a password input."""
-        kwargs['type'] = 'password'
+        kwargs["type"] = "password"
         return super().__call__(**kwargs)
 
 
@@ -83,7 +84,7 @@ class HiddenField(Field):
 
     def __call__(self, **kwargs):
         """Render the field as a hidden input."""
-        kwargs['type'] = 'hidden'
+        kwargs["type"] = "hidden"
         return super().__call__(**kwargs)
 
 
@@ -92,7 +93,7 @@ class IntegerField(Field):
 
     def process_formdata(self, value):
         """Coerce the form data to an integer."""
-        if value is None or value == '':
+        if value is None or value == "":
             self.data = None
             return
         try:
@@ -103,7 +104,7 @@ class IntegerField(Field):
 
     def __call__(self, **kwargs):
         """Render the field as a number input."""
-        kwargs.setdefault('type', 'number')
+        kwargs.setdefault("type", "number")
         return super().__call__(**kwargs)
 
 
@@ -112,13 +113,13 @@ class TextAreaField(Field):
 
     def __call__(self, **kwargs):
         """Render the field as a textarea."""
-        kwargs.setdefault('id', self.name)
-        kwargs.setdefault('name', self.name)
+        kwargs.setdefault("id", self.name)
+        kwargs.setdefault("name", self.name)
 
-        value = str(self.data) if self.data is not None else str(self.default or '')
-        attributes = ' '.join(f'{key}="{value}"' for key, value in kwargs.items())
+        value = str(self.data) if self.data is not None else str(self.default or "")
+        attributes = " ".join(f'{key}="{value}"' for key, value in kwargs.items())
 
-        return Markup(f'<textarea {attributes}>{value}</textarea>')
+        return Markup(f"<textarea {attributes}>{value}</textarea>")
 
 
 class BooleanField(Field):
@@ -130,10 +131,10 @@ class BooleanField(Field):
 
     def __call__(self, **kwargs):
         """Render the field as a checkbox."""
-        kwargs.setdefault('type', 'checkbox')
+        kwargs.setdefault("type", "checkbox")
         if self.data:
-            kwargs['checked'] = 'checked'
-        kwargs['value'] = 'true'
+            kwargs["checked"] = "checked"
+        kwargs["value"] = "true"
         return super().__call__(**kwargs)
 
 
@@ -152,19 +153,19 @@ class SelectField(Field):
 
     def __call__(self, **kwargs):
         """Render the field as a select dropdown."""
-        kwargs.setdefault('id', self.name)
-        kwargs.setdefault('name', self.name)
+        kwargs.setdefault("id", self.name)
+        kwargs.setdefault("name", self.name)
 
         attrs_str = " ".join(f'{k}="{v}"' for k, v in kwargs.items())
-        html = [f'<select {attrs_str}>']
+        html = [f"<select {attrs_str}>"]
         for value, label, selected in self:
-            option_attrs = {'value': value}
+            option_attrs = {"value": value}
             if selected:
-                option_attrs['selected'] = 'selected'
+                option_attrs["selected"] = "selected"
             option_attrs_str = " ".join(f'{k}="{v}"' for k, v in option_attrs.items())
-            html.append(f'<option {option_attrs_str}>{label}</option>')
-        html.append('</select>')
-        return Markup(''.join(html))
+            html.append(f"<option {option_attrs_str}>{label}</option>")
+        html.append("</select>")
+        return Markup("".join(html))
 
 
 class RadioField(Field):
@@ -182,27 +183,27 @@ class RadioField(Field):
 
     def __call__(self, **kwargs):
         """Render the field as a list of radio buttons."""
-        kwargs.setdefault('id', self.name)
+        kwargs.setdefault("id", self.name)
 
         html = ['<ul class="radio-list">']
         for value, label, checked in self:
-            option_id = f'{self.name}-{value}'
+            option_id = f"{self.name}-{value}"
             radio_attrs = {
-                'type': 'radio',
-                'name': self.name,
-                'id': option_id,
-                'value': value
+                "type": "radio",
+                "name": self.name,
+                "id": option_id,
+                "value": value,
             }
             if checked:
-                radio_attrs['checked'] = 'checked'
+                radio_attrs["checked"] = "checked"
 
             radio_attrs_str = " ".join(f'{k}="{v}"' for k, v in radio_attrs.items())
-            html.append('<li>')
-            html.append(f'<input {radio_attrs_str}>')
+            html.append("<li>")
+            html.append(f"<input {radio_attrs_str}>")
             html.append(f'<label for="{option_id}">{label}</label>')
-            html.append('</li>')
-        html.append('</ul>')
-        return Markup(''.join(html))
+            html.append("</li>")
+        html.append("</ul>")
+        return Markup("".join(html))
 
 
 class FileField(Field):
@@ -218,15 +219,15 @@ class FileField(Field):
 
     def __call__(self, **kwargs):
         """Render the field as a file input."""
-        kwargs['type'] = 'file'
-        kwargs.setdefault('id', self.name)
-        kwargs.setdefault('name', self.name)
+        kwargs["type"] = "file"
+        kwargs.setdefault("id", self.name)
+        kwargs.setdefault("name", self.name)
         if self.multiple:
-            kwargs['multiple'] = 'multiple'
-        kwargs.pop('value', None)
+            kwargs["multiple"] = "multiple"
+        kwargs.pop("value", None)
 
-        attributes = ' '.join(f'{key}="{value}"' for key, value in kwargs.items())
-        return Markup(f'<input {attributes}>')
+        attributes = " ".join(f'{key}="{value}"' for key, value in kwargs.items())
+        return Markup(f"<input {attributes}>")
 
 
 class Form:

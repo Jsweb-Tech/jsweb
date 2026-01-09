@@ -18,8 +18,10 @@ if config.config_file_name is not None:
 # Import the Base from the framework's database module.
 # This ensures that autogenerate detects models that inherit from ModelBase.
 from jsweb.database import ModelBase
+
 target_metadata = ModelBase.metadata
 # --- END JSWEB MODIFICATION ---
+
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
@@ -61,12 +63,12 @@ def run_migrations_online() -> None:
     with connectable.connect() as connection:
         # --- JSWEB MODIFICATION for SQLite ---
         # Enable batch mode for SQLite to handle ALTER constraints.
-        is_sqlite = connection.dialect.name == 'sqlite'
-        
+        is_sqlite = connection.dialect.name == "sqlite"
+
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
-            render_as_batch=is_sqlite 
+            render_as_batch=is_sqlite,
         )
         # --- END JSWEB MODIFICATION ---
 

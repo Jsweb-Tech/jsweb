@@ -5,11 +5,13 @@ import uuid
 
 class NotFound(Exception):
     """Raised when a route is not found for a given path."""
+
     pass
 
 
 class MethodNotAllowed(Exception):
     """Raised when a request method is not allowed for a matched route."""
+
     pass
 
 
@@ -28,7 +30,7 @@ def _int_converter(value: str) -> Optional[int]:
         return None
 
     try:
-        if value.startswith('-') and value[1:].isdigit():
+        if value.startswith("-") and value[1:].isdigit():
             result = int(value)
         elif value.isdigit():
             result = int(value)
@@ -124,15 +126,26 @@ class Route:
         is_static (bool): A flag indicating if the route has dynamic parameters.
     """
 
-    __slots__ = ('path', 'handler', 'methods', 'endpoint', 'converters',
-                 'is_static', 'regex', 'param_names')
+    __slots__ = (
+        "path",
+        "handler",
+        "methods",
+        "endpoint",
+        "converters",
+        "is_static",
+        "regex",
+        "param_names",
+    )
 
     TYPE_CONVERTERS = {
-        'str': (_str_converter, r'[^/]+'),
-        'int': (_int_converter, r'-?\d+'),
-        'float': (_float_converter, r'-?\d+(\.\d+)?'),
-        'uuid': (_uuid_converter, r'[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'),
-        'path': (_path_converter, r'.+?')
+        "str": (_str_converter, r"[^/]+"),
+        "int": (_int_converter, r"-?\d+"),
+        "float": (_float_converter, r"-?\d+(\.\d+)?"),
+        "uuid": (
+            _uuid_converter,
+            r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}",
+        ),
+        "path": (_path_converter, r".+?"),
     }
 
     def __init__(self, path: str, handler: Callable, methods: List[str], endpoint: str):
@@ -141,7 +154,7 @@ class Route:
         self.methods = methods
         self.endpoint = endpoint
         self.converters = {}
-        self.is_static = '<' not in path
+        self.is_static = "<" not in path
         if not self.is_static:
             self.regex, self.param_names = self._compile_path()
         else:
@@ -164,8 +177,12 @@ class Route:
         param_names = []
 
         for type_name, param_name in param_defs:
-            converter, regex_part = self.TYPE_CONVERTERS.get(type_name, self.TYPE_CONVERTERS['str'])
-            regex_path = regex_path.replace(f"<{type_name}:{param_name}>", f"(?P<{param_name}>{regex_part})")
+            converter, regex_part = self.TYPE_CONVERTERS.get(
+                type_name, self.TYPE_CONVERTERS["str"]
+            )
+            regex_path = regex_path.replace(
+                f"<{type_name}:{param_name}>", f"(?P<{param_name}>{regex_part})"
+            )
             self.converters[param_name] = converter
             param_names.append(param_name)
 
@@ -214,8 +231,13 @@ class Router:
         self.dynamic_routes: List[Route] = []
         self.endpoints: Dict[str, Route] = {}
 
-    def add_route(self, path: str, handler: Callable, methods: Optional[List[str]] = None,
-                  endpoint: Optional[str] = None):
+    def add_route(
+        self,
+        path: str,
+        handler: Callable,
+        methods: Optional[List[str]] = None,
+        endpoint: Optional[str] = None,
+    ):
         """
         Adds a new route to the router.
 
@@ -235,7 +257,7 @@ class Router:
             endpoint = handler.__name__
 
         if endpoint in self.endpoints:
-            raise ValueError(f"Endpoint \"{endpoint}\" is already registered.")
+            raise ValueError(f'Endpoint "{endpoint}" is already registered.')
 
         route = Route(path, handler, methods, endpoint)
 
@@ -246,7 +268,12 @@ class Router:
 
         self.endpoints[endpoint] = route
 
-    def route(self, path: str, methods: Optional[List[str]] = None, endpoint: Optional[str] = None):
+    def route(
+        self,
+        path: str,
+        methods: Optional[List[str]] = None,
+        endpoint: Optional[str] = None,
+    ):
         """
         A decorator to register a view function for a given URL path.
 
@@ -327,7 +354,9 @@ class Router:
 
         for param_name in route.param_names:
             if param_name not in params:
-                raise ValueError(f"Missing parameter '{param_name}' for endpoint '{endpoint}'.")
+                raise ValueError(
+                    f"Missing parameter '{param_name}' for endpoint '{endpoint}'."
+                )
 
             for type_name in Route.TYPE_CONVERTERS.keys():
                 pattern = f"<{type_name}:{param_name}>"

@@ -10,6 +10,7 @@ from threading import RLock
 @dataclass
 class ParameterMetadata:
     """OpenAPI parameter definition."""
+
     name: str
     location: str  # 'path', 'query', 'header', 'cookie'
     schema: Dict[str, Any]
@@ -22,6 +23,7 @@ class ParameterMetadata:
 @dataclass
 class RequestBodyMetadata:
     """OpenAPI request body definition."""
+
     content_type: str  # 'application/json', 'multipart/form-data', etc.
     schema: Dict[str, Any]
     description: str = ""
@@ -32,6 +34,7 @@ class RequestBodyMetadata:
 @dataclass
 class ResponseMetadata:
     """OpenAPI response definition."""
+
     status_code: int
     description: str
     content: Optional[Dict[str, Dict]] = None  # {'application/json': {'schema': {...}}}
@@ -42,6 +45,7 @@ class ResponseMetadata:
 @dataclass
 class RouteMetadata:
     """Complete OpenAPI operation metadata."""
+
     # Route identification
     handler: Callable
     path: str = ""

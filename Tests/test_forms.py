@@ -9,13 +9,13 @@ from io import BytesIO
 def test_form_creation():
     """Test basic form creation."""
     from jsweb.forms import Form, StringField
-    
+
     class TestForm(Form):
-        username = StringField('Username')
-    
+        username = StringField("Username")
+
     form = TestForm()
     assert form is not None
-    assert hasattr(form, 'username')
+    assert hasattr(form, "username")
 
 
 @pytest.mark.unit
@@ -23,14 +23,14 @@ def test_form_creation():
 def test_stringfield_creation():
     """Test StringField creation."""
     from jsweb.forms import Form, StringField
-    
+
     class TestForm(Form):
-        email = StringField('Email')
-    
+        email = StringField("Email")
+
     form = TestForm()
     assert form.email is not None
     # Label is an object, not a string
-    assert hasattr(form.email, 'label') or hasattr(form.email, 'name')
+    assert hasattr(form.email, "label") or hasattr(form.email, "name")
 
 
 @pytest.mark.unit
@@ -39,11 +39,11 @@ def test_form_with_validators():
     """Test form with validators."""
     from jsweb.forms import Form, StringField
     from jsweb.validators import DataRequired, Email
-    
+
     class LoginForm(Form):
-        email = StringField('Email', validators=[DataRequired(), Email()])
-        password = StringField('Password', validators=[DataRequired()])
-    
+        email = StringField("Email", validators=[DataRequired(), Email()])
+        password = StringField("Password", validators=[DataRequired()])
+
     form = LoginForm()
     assert len(form.email.validators) >= 2
     assert len(form.password.validators) >= 1
@@ -54,17 +54,17 @@ def test_form_with_validators():
 def test_form_field_population():
     """Test populating form fields with data."""
     from jsweb.forms import Form, StringField
-    
+
     class UserForm(Form):
-        username = StringField('Username')
-        email = StringField('Email')
-    
+        username = StringField("Username")
+        email = StringField("Email")
+
     form = UserForm()
     # Manually set field data after form creation
-    form.username.data = 'john_doe'
-    form.email.data = 'john@example.com'
-    assert form.username.data == 'john_doe'
-    assert form.email.data == 'john@example.com'
+    form.username.data = "john_doe"
+    form.email.data = "john@example.com"
+    assert form.username.data == "john_doe"
+    assert form.email.data == "john@example.com"
 
 
 @pytest.mark.unit
@@ -72,18 +72,18 @@ def test_form_field_population():
 def test_datarequired_validator():
     """Test DataRequired validator."""
     from jsweb.validators import DataRequired, ValidationError
-    
+
     validator = DataRequired()
-    
+
     class MockField:
         data = None
-    
+
     field = MockField()
-    
+
     # Should raise for None/empty data
     with pytest.raises(ValidationError):
         validator(None, field)
-    
+
     # Should not raise for valid data
     field.data = "valid data"
     validator(None, field)  # Should not raise
@@ -94,19 +94,19 @@ def test_datarequired_validator():
 def test_email_validator():
     """Test Email validator."""
     from jsweb.validators import Email, ValidationError
-    
+
     validator = Email()
-    
+
     class MockField:
         def __init__(self, data):
             self.data = data
-    
+
     # Valid email
-    field = MockField('test@example.com')
+    field = MockField("test@example.com")
     validator(None, field)  # Should not raise
-    
+
     # Invalid email
-    field = MockField('not-an-email')
+    field = MockField("not-an-email")
     with pytest.raises(ValidationError):
         validator(None, field)
 
@@ -116,24 +116,24 @@ def test_email_validator():
 def test_length_validator():
     """Test Length validator."""
     from jsweb.validators import Length, ValidationError
-    
+
     validator = Length(min=3, max=10)
-    
+
     class MockField:
         def __init__(self, data):
             self.data = data
-    
+
     # Valid length
-    field = MockField('hello')
+    field = MockField("hello")
     validator(None, field)  # Should not raise
-    
+
     # Too short
-    field = MockField('ab')
+    field = MockField("ab")
     with pytest.raises(ValidationError):
         validator(None, field)
-    
+
     # Too long
-    field = MockField('this is way too long')
+    field = MockField("this is way too long")
     with pytest.raises(ValidationError):
         validator(None, field)
 
@@ -143,26 +143,26 @@ def test_length_validator():
 def test_eql_validator():
     """Test EqualTo validator."""
     from jsweb.validators import EqualTo, ValidationError
-    
+
     class MockForm:
         def __getitem__(self, key):
-            if key == 'password':
-                field = type('Field', (), {'data': 'mypassword'})()
+            if key == "password":
+                field = type("Field", (), {"data": "mypassword"})()
                 return field
             raise KeyError(key)
-    
-    validator = EqualTo('password')
-    
+
+    validator = EqualTo("password")
+
     class MockField:
         def __init__(self, data):
             self.data = data
-    
+
     # Matching passwords
-    field = MockField('mypassword')
+    field = MockField("mypassword")
     validator(MockForm(), field)  # Should not raise
-    
+
     # Non-matching passwords
-    field = MockField('different')
+    field = MockField("different")
     with pytest.raises(ValidationError):
         validator(MockForm(), field)
 
@@ -172,18 +172,18 @@ def test_eql_validator():
 def test_form_multiple_fields():
     """Test form with multiple different field types."""
     from jsweb.forms import Form, StringField, IntegerField, BooleanField
-    
+
     class ProfileForm(Form):
-        name = StringField('Name')
-        age = IntegerField('Age')
-        active = BooleanField('Active')
-    
+        name = StringField("Name")
+        age = IntegerField("Age")
+        active = BooleanField("Active")
+
     form = ProfileForm()
     # Manually set field data
-    form.name.data = 'John Doe'
+    form.name.data = "John Doe"
     form.age.data = 30
     form.active.data = True
-    assert form.name.data == 'John Doe'
+    assert form.name.data == "John Doe"
     assert form.age.data == 30
     assert form.active.data is True
 
@@ -193,15 +193,15 @@ def test_form_multiple_fields():
 def test_form_field_rendering():
     """Test form field HTML rendering."""
     from jsweb.forms import Form, StringField
-    
+
     class ContactForm(Form):
-        email = StringField('Email')
-    
+        email = StringField("Email")
+
     form = ContactForm()
-    
+
     # Should be able to render field
     field_html = str(form.email)
-    assert 'email' in field_html.lower() or form.email is not None
+    assert "email" in field_html.lower() or form.email is not None
 
 
 @pytest.mark.unit
@@ -209,13 +209,13 @@ def test_form_field_rendering():
 def test_textarea_field():
     """Test TextAreaField."""
     from jsweb.forms import Form, TextAreaField
-    
+
     class CommentForm(Form):
-        comment = TextAreaField('Comment')
-    
+        comment = TextAreaField("Comment")
+
     form = CommentForm()
-    form.comment.data = 'This is a comment'
-    assert form.comment.data == 'This is a comment'
+    form.comment.data = "This is a comment"
+    assert form.comment.data == "This is a comment"
 
 
 @pytest.mark.unit
@@ -224,17 +224,20 @@ def test_select_field():
     """Test SelectField."""
     try:
         from jsweb.forms import Form, SelectField
-        
+
         class CategoryForm(Form):
-            category = SelectField('Category', choices=[
-                ('tech', 'Technology'),
-                ('business', 'Business'),
-                ('sports', 'Sports')
-            ])
-        
+            category = SelectField(
+                "Category",
+                choices=[
+                    ("tech", "Technology"),
+                    ("business", "Business"),
+                    ("sports", "Sports"),
+                ],
+            )
+
         form = CategoryForm()
-        form.category.data = 'tech'
-        assert form.category.data == 'tech'
+        form.category.data = "tech"
+        assert form.category.data == "tech"
     except ImportError:
         pytest.skip("SelectField not available")
 
@@ -245,22 +248,22 @@ def test_range_validator():
     """Test NumberRange validator."""
     try:
         from jsweb.validators import NumberRange, ValidationError
-        
+
         validator = NumberRange(min=1, max=100)
-        
+
         class MockField:
             def __init__(self, data):
                 self.data = data
-        
+
         # Valid range
         field = MockField(50)
         validator(None, field)  # Should not raise
-        
+
         # Too small
         field = MockField(0)
         with pytest.raises(ValidationError):
             validator(None, field)
-        
+
         # Too large
         field = MockField(101)
         with pytest.raises(ValidationError):
@@ -275,20 +278,20 @@ def test_regex_validator():
     """Test Regexp validator."""
     try:
         from jsweb.validators import Regexp, ValidationError
-        
+
         # Only alphanumeric
-        validator = Regexp(r'^\w+$')
-        
+        validator = Regexp(r"^\w+$")
+
         class MockField:
             def __init__(self, data):
                 self.data = data
-        
+
         # Valid
-        field = MockField('username123')
+        field = MockField("username123")
         validator(None, field)  # Should not raise
-        
+
         # Invalid (contains special char)
-        field = MockField('user@name')
+        field = MockField("user@name")
         with pytest.raises(ValidationError):
             validator(None, field)
     except ImportError:
@@ -301,12 +304,12 @@ def test_form_field_errors():
     """Test form field error handling."""
     from jsweb.forms import Form, StringField
     from jsweb.validators import DataRequired, ValidationError
-    
+
     class RequiredForm(Form):
-        name = StringField('Name', validators=[DataRequired()])
-    
+        name = StringField("Name", validators=[DataRequired()])
+
     form = RequiredForm()
-    
+
     # Field should have validators
     assert len(form.name.validators) > 0
 
@@ -317,14 +320,17 @@ def test_file_field_validators():
     """Test FileField with validators."""
     from jsweb.forms import Form, FileField
     from jsweb.validators import FileRequired, FileAllowed, FileSize
-    
+
     class UploadForm(Form):
-        document = FileField('Document', validators=[
-            FileRequired(),
-            FileAllowed(['pdf', 'doc', 'docx']),
-            FileSize(max_size=5*1024*1024)  # 5MB
-        ])
-    
+        document = FileField(
+            "Document",
+            validators=[
+                FileRequired(),
+                FileAllowed(["pdf", "doc", "docx"]),
+                FileSize(max_size=5 * 1024 * 1024),  # 5MB
+            ],
+        )
+
     form = UploadForm()
     assert form.document is not None
     assert len(form.document.validators) == 3
@@ -336,13 +342,13 @@ def test_hidden_field():
     """Test HiddenField."""
     try:
         from jsweb.forms import Form, HiddenField
-        
+
         class SecureForm(Form):
             csrf_token = HiddenField()
-        
+
         form = SecureForm()
-        form.csrf_token.data = 'token123'
-        assert form.csrf_token.data == 'token123'
+        form.csrf_token.data = "token123"
+        assert form.csrf_token.data == "token123"
     except ImportError:
         pytest.skip("HiddenField not available")
 
@@ -354,10 +360,10 @@ def test_password_field():
     try:
         from jsweb.forms import Form, PasswordField
         from jsweb.validators import DataRequired
-        
+
         class LoginForm(Form):
-            password = PasswordField('Password', validators=[DataRequired()])
-        
+            password = PasswordField("Password", validators=[DataRequired()])
+
         form = LoginForm()
         assert form.password is not None
     except ImportError:

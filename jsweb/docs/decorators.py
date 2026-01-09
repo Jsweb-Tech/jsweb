@@ -9,7 +9,7 @@ from .registry import (
     openapi_registry,
     ResponseMetadata,
     RequestBodyMetadata,
-    ParameterMetadata
+    ParameterMetadata,
 )
 
 
@@ -20,7 +20,7 @@ def api_operation(
     deprecated: bool = False,
 ):
     """
-    Document an API operation 
+    Document an API operation
 
     This decorator should be placed closest to the route decorator.
 
@@ -41,6 +41,7 @@ def api_operation(
             '''Get all users in the system.'''
             return json({"users": [...]})
     """
+
     def decorator(handler):
         metadata = openapi_registry.get_or_create_route(handler)
 
@@ -51,6 +52,7 @@ def api_operation(
         metadata.deprecated = deprecated
 
         return handler
+
     return decorator
 
 
@@ -60,7 +62,7 @@ def api_response(
     description: str = "",
     content_type: str = "application/json",
     examples: Dict[str, Any] = None,
-    headers: Dict[str, Dict] = None
+    headers: Dict[str, Dict] = None,
 ):
     """
     Document an API response (NestJS-style).
@@ -80,6 +82,7 @@ def api_response(
         async def get_user(req, user_id):
             return json({"user": {...}})
     """
+
     def decorator(handler):
         metadata = openapi_registry.get_or_create_route(handler)
 
@@ -87,17 +90,13 @@ def api_response(
         content = None
         if dto:
             # Check if DTO has OpenAPI schema method (from JswebBaseModel)
-            if hasattr(dto, 'openapi_schema'):
+            if hasattr(dto, "openapi_schema"):
                 schema = dto.openapi_schema()
             else:
                 # Fallback to basic object type
                 schema = {"type": "object"}
 
-            content = {
-                content_type: {
-                    "schema": schema
-                }
-            }
+            content = {content_type: {"schema": schema}}
 
             if examples:
                 content[content_type]["examples"] = examples
@@ -107,11 +106,12 @@ def api_response(
             description=description,
             content=content,
             headers=headers,
-            dto_class=dto  # Store for automatic serialization
+            dto_class=dto,  # Store for automatic serialization
         )
 
         metadata.responses[status_code] = response
         return handler
+
     return decorator
 
 
@@ -121,7 +121,7 @@ def api_body(
     content_type: str = "application/json",
     required: bool = True,
     examples: Dict[str, Any] = None,
-    auto_validate: bool = True  # NEW: Enable/disable automatic validation
+    auto_validate: bool = True,  # NEW: Enable/disable automatic validation
 ):
     """
     Document request body with AUTOMATIC VALIDATION (FastAPI-style).
@@ -155,40 +155,42 @@ def api_body(
             data = await req.json()  # Manual handling
             return json(data)
     """
+
     def decorator(handler):
         from .auto_validation import validate_request_body
 
         metadata = openapi_registry.get_or_create_route(handler)
 
         # Get schema from DTO
-        if hasattr(dto, 'openapi_schema'):
+        if hasattr(dto, "openapi_schema"):
             schema = dto.openapi_schema()
         else:
             schema = {"type": "object"}
 
         # Add examples to schema if provided
         if examples:
-            schema['examples'] = examples
+            schema["examples"] = examples
 
         metadata.request_body = RequestBodyMetadata(
             content_type=content_type,
             schema=schema,
             description=description,
             required=required,
-            dto_class=dto  # Store for automatic validation
+            dto_class=dto,  # Store for automatic validation
         )
 
         # Apply automatic validation unless disabled
-        if auto_validate and not getattr(handler, '_jsweb_disable_validation', False):
+        if auto_validate and not getattr(handler, "_jsweb_disable_validation", False):
             handler = validate_request_body(dto)(handler)
 
         # Mark handler with validation info
-        if not hasattr(handler, '_jsweb_validation'):
+        if not hasattr(handler, "_jsweb_validation"):
             handler._jsweb_validation = {}
-        handler._jsweb_validation['body_dto'] = dto
-        handler._jsweb_validation['auto_validate'] = auto_validate
+        handler._jsweb_validation["body_dto"] = dto
+        handler._jsweb_validation["auto_validate"] = auto_validate
 
         return handler
+
     return decorator
 
 
@@ -200,7 +202,7 @@ def api_query(
     description: str = "",
     example: Any = None,
     deprecated: bool = False,
-    **schema_kwargs
+    **schema_kwargs,
 ):
     """
     Document a query parameter (NestJS-style).
@@ -222,26 +224,28 @@ def api_query(
             page = int(req.query_params.get('page', 1))
             return json({"users": [...]})
     """
+
     def decorator(handler):
         metadata = openapi_registry.get_or_create_route(handler)
 
         # Convert Python type to OpenAPI schema
         schema = _type_to_schema(type, **schema_kwargs)
         if example is not None:
-            schema['example'] = example
+            schema["example"] = example
 
         param = ParameterMetadata(
             name=name,
-            location='query',
+            location="query",
             schema=schema,
             required=required,
             description=description,
             deprecated=deprecated,
-            example=example
+            example=example,
         )
 
         metadata.parameters.append(param)
         return handler
+
     return decorator
 
 
@@ -253,10 +257,10 @@ def api_header(
     description: str = "",
     example: Any = None,
     deprecated: bool = False,
-    **schema_kwargs
+    **schema_kwargs,
 ):
     """
-    Document a header parameter 
+    Document a header parameter
 
     Args:
         name: Header name (e.g., 'Authorization', 'X-API-Key')
@@ -274,31 +278,33 @@ def api_header(
             api_key = req.headers.get('X-API-Key')
             return json({"data": "..."})
     """
+
     def decorator(handler):
         metadata = openapi_registry.get_or_create_route(handler)
 
         schema = _type_to_schema(type, **schema_kwargs)
         if example is not None:
-            schema['example'] = example
+            schema["example"] = example
 
         param = ParameterMetadata(
             name=name,
-            location='header',
+            location="header",
             schema=schema,
             required=required,
             description=description,
             deprecated=deprecated,
-            example=example
+            example=example,
         )
 
         metadata.parameters.append(param)
         return handler
+
     return decorator
 
 
 def api_security(*schemes: str, scopes: List[str] = None):
     """
-    Apply security requirements to an operation 
+    Apply security requirements to an operation
 
     Args:
         *schemes: Security scheme names (must be registered)
@@ -323,6 +329,7 @@ def api_security(*schemes: str, scopes: List[str] = None):
         async def admin_route(req):
             return json({"data": "..."})
     """
+
     def decorator(handler):
         metadata = openapi_registry.get_or_create_route(handler)
 
@@ -330,12 +337,13 @@ def api_security(*schemes: str, scopes: List[str] = None):
             metadata.security.append({scheme: scopes or []})
 
         return handler
+
     return decorator
 
 
 def api_tags(*tags: str):
     """
-    Add tags to an operation for grouping in documentation 
+    Add tags to an operation for grouping in documentation
 
     Args:
         *tags: Tag names
@@ -346,10 +354,12 @@ def api_tags(*tags: str):
         async def delete_user(req, user_id):
             return json({"message": "User deleted"})
     """
+
     def decorator(handler):
         metadata = openapi_registry.get_or_create_route(handler)
         metadata.tags.extend(tags)
         return handler
+
     return decorator
 
 

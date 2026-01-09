@@ -12,9 +12,9 @@ from .models import JswebBaseModel, Field, ValidationError
 from .validators import validator, root_validator
 
 __all__ = [
-    'JswebBaseModel',
-    'Field',
-    'ValidationError',
-    'validator',
-    'root_validator',
+    "JswebBaseModel",
+    "Field",
+    "ValidationError",
+    "validator",
+    "root_validator",
 ]

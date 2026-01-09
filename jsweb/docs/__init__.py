@@ -18,7 +18,7 @@ from .decorators import (
     api_query,
     api_header,
     api_security,
-    api_tags
+    api_tags,
 )
 from .setup import setup_openapi_docs, configure_openapi, add_security_scheme
 from .registry import openapi_registry
@@ -26,22 +26,19 @@ from .auto_validation import disable_auto_validation
 
 __all__ = [
     # Decorators
-    'api_operation',
-    'api_response',
-    'api_body',
-    'api_query',
-    'api_header',
-    'api_security',
-    'api_tags',
-
+    "api_operation",
+    "api_response",
+    "api_body",
+    "api_query",
+    "api_header",
+    "api_security",
+    "api_tags",
     # Setup functions
-    'setup_openapi_docs',
-    'configure_openapi',
-    'add_security_scheme',
-
+    "setup_openapi_docs",
+    "configure_openapi",
+    "add_security_scheme",
     # Utilities
-    'disable_auto_validation',
-
+    "disable_auto_validation",
     # Registry (for advanced usage)
-    'openapi_registry',
+    "openapi_registry",
 ]
