@@ -1,7 +1,8 @@
 """Framework comparison and performance benchmarking tests."""
 
-import pytest
 import time
+
+import pytest
 
 
 @pytest.mark.slow
@@ -162,8 +163,9 @@ def test_flask_routing_performance():
 @pytest.mark.unit
 def test_routing_comparison_jsweb_vs_alternatives():
     """Test and compare JsWeb routing against simple alternatives."""
-    from jsweb.routing import Router
     import re
+
+    from jsweb.routing import Router
 
     # JsWeb router
     jsweb_router = Router()

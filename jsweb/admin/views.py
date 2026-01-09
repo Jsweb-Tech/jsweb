@@ -1,13 +1,15 @@
-import os
 import logging
+import os
+
 from jinja2 import Environment, FileSystemLoader
+from sqlalchemy.inspection import inspect
+
 from jsweb import __VERSION__
+from jsweb.auth import admin_required, login_user
 from jsweb.blueprints import Blueprint
 from jsweb.database import db_session
 from jsweb.forms import Form, StringField
-from jsweb.response import redirect, url_for, HTMLResponse
-from jsweb.auth import admin_required, login_user
-from sqlalchemy.inspection import inspect
+from jsweb.response import HTMLResponse, redirect, url_for
 
 logger = logging.getLogger(__name__)
 

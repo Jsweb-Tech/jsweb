@@ -7,6 +7,7 @@ when @api_body decorator is used.
 
 from jsweb.request import Request
 from jsweb.response import JSONResponse
+
 from .registry import openapi_registry
 
 

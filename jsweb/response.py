@@ -1,8 +1,8 @@
+from datetime import datetime
 import json as pyjson
 import logging
 import os
 import re
-from datetime import datetime
 from typing import List, Union
 
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound, select_autoescape

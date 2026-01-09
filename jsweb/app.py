@@ -1,12 +1,13 @@
-import secrets
-import os
 import asyncio
-from .routing import Router, NotFound, MethodNotAllowed
-from .request import Request
-from .response import Response, HTMLResponse, configure_template_env, JSONResponse
-from .auth import init_auth, get_current_user
-from .middleware import StaticFilesMiddleware, DBSessionMiddleware, CSRFMiddleware
+import os
+import secrets
+
+from .auth import get_current_user, init_auth
 from .blueprints import Blueprint
+from .middleware import CSRFMiddleware, DBSessionMiddleware, StaticFilesMiddleware
+from .request import Request
+from .response import HTMLResponse, JSONResponse, Response, configure_template_env
+from .routing import MethodNotAllowed, NotFound, Router
 
 
 class JsWebApp:

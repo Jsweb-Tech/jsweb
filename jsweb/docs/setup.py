@@ -5,17 +5,18 @@ This module provides one-line setup functions for enabling
 automatic API documentation with Swagger UI and ReDoc.
 """
 
-from typing import Dict, List, Any, Optional
-from .schema_builder import OpenAPISchemaBuilder
-from .ui_handlers import (
-    set_builder,
-    openapi_json_handler,
-    swagger_ui_handler,
-    redoc_handler,
-    rapidoc_handler,
-)
+from typing import Any, Dict, List, Optional
+
 from .introspection import introspect_app_routes
 from .registry import openapi_registry
+from .schema_builder import OpenAPISchemaBuilder
+from .ui_handlers import (
+    openapi_json_handler,
+    rapidoc_handler,
+    redoc_handler,
+    set_builder,
+    swagger_ui_handler,
+)
 
 
 def configure_openapi(

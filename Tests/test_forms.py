@@ -1,7 +1,8 @@
 """Tests for JsWeb forms and validation system."""
 
-import pytest
 from io import BytesIO
+
+import pytest
 
 
 @pytest.mark.unit
@@ -171,7 +172,7 @@ def test_eql_validator():
 @pytest.mark.forms
 def test_form_multiple_fields():
     """Test form with multiple different field types."""
-    from jsweb.forms import Form, StringField, IntegerField, BooleanField
+    from jsweb.forms import BooleanField, Form, IntegerField, StringField
 
     class ProfileForm(Form):
         name = StringField("Name")
@@ -318,8 +319,8 @@ def test_form_field_errors():
 @pytest.mark.forms
 def test_file_field_validators():
     """Test FileField with validators."""
-    from jsweb.forms import Form, FileField
-    from jsweb.validators import FileRequired, FileAllowed, FileSize
+    from jsweb.forms import FileField, Form
+    from jsweb.validators import FileAllowed, FileRequired, FileSize
 
     class UploadForm(Form):
         document = FileField(

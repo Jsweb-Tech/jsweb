@@ -1,14 +1,15 @@
 """Tests for new JsWeb features (JSON parsing, file uploads, validators)."""
 
-import json
-import pytest
 from io import BytesIO
+import json
+
+import pytest
 
 
 @pytest.mark.unit
 def test_import_new_features():
     """Test that all new features can be imported."""
-    from jsweb import UploadedFile, FileField, FileRequired, FileAllowed, FileSize
+    from jsweb import FileAllowed, FileField, FileRequired, FileSize, UploadedFile
 
     assert UploadedFile is not None
     assert FileField is not None
@@ -86,8 +87,8 @@ async def test_json_parsing_with_numbers():
 @pytest.mark.unit
 def test_filefield_creation():
     """Test FileField creation in forms."""
-    from jsweb.forms import Form, FileField
-    from jsweb.validators import FileRequired, FileAllowed, FileSize
+    from jsweb.forms import FileField, Form
+    from jsweb.validators import FileAllowed, FileRequired, FileSize
 
     class TestForm(Form):
         upload = FileField(

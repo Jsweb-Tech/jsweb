@@ -8,10 +8,11 @@ This module introspects the jsweb app's routes and automatically:
 - Registers schemas from DTOs
 """
 
-import re
 import inspect
+import re
 from typing import Any, Dict
-from .registry import openapi_registry, RouteMetadata, ParameterMetadata
+
+from .registry import ParameterMetadata, RouteMetadata, openapi_registry
 
 
 def introspect_app_routes(app):

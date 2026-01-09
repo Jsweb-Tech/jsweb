@@ -1,8 +1,9 @@
 """Tests for JsWeb request and response handling."""
 
-import pytest
-import json
 from io import BytesIO
+import json
+
+import pytest
 
 
 @pytest.mark.unit
@@ -67,8 +68,9 @@ def test_request_path():
 @pytest.mark.asyncio
 async def test_request_json_parsing():
     """Test JSON request body parsing."""
-    from jsweb.request import Request
     import json
+
+    from jsweb.request import Request
 
     class FakeApp:
         class config:
@@ -239,8 +241,9 @@ def test_response_json():
         assert response is not None
     except (ImportError, AttributeError):
         # Try alternative
-        from jsweb.response import Response
         import json
+
+        from jsweb.response import Response
 
         data = {"message": "success", "code": 200}
         json_str = json.dumps(data)

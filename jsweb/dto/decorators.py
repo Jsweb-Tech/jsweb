@@ -1,6 +1,6 @@
+from dataclasses import dataclass, field as dataclass_field
 import functools
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
-from dataclasses import dataclass, field as dataclass_field
 
 from .core import FieldMetadata, ModelT
 

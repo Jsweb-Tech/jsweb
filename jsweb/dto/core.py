@@ -1,7 +1,6 @@
 from enum import Enum
 from typing import Any, Dict, TypeVar
 
-
 # Type variables
 T = TypeVar("T")
 ModelT = TypeVar("ModelT", bound="JswebBaseModel")

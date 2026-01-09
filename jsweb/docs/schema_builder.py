@@ -5,8 +5,9 @@ Generates complete OpenAPI specification from registry metadata.
 """
 
 import re
-from typing import Dict, Any, List, Optional
-from .registry import openapi_registry, RouteMetadata
+from typing import Any, Dict, List, Optional
+
+from .registry import RouteMetadata, openapi_registry
 
 
 class OpenAPISchemaBuilder:

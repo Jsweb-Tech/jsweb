@@ -2,11 +2,12 @@
 Custom validators for jsweb DTOs - wraps Pydantic's validators
 """
 
+from typing import Any, Callable
+
 from pydantic import (
     field_validator as pydantic_field_validator,
     model_validator as pydantic_model_validator,
 )
-from typing import Any, Callable
 
 
 def validator(field_name: str, *, mode: str = "after", **kwargs) -> Callable:

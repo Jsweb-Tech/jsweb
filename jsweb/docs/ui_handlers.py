@@ -5,6 +5,7 @@ Serves documentation interfaces and OpenAPI JSON spec.
 """
 
 import json as json_module
+
 from .schema_builder import OpenAPISchemaBuilder
 
 # Global builder instance (configured by user)

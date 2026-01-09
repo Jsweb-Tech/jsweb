@@ -2,9 +2,9 @@
 OpenAPI metadata registry - Central storage for all route documentation
 """
 
-from typing import Dict, List, Optional, Callable, Any, Type
 from dataclasses import dataclass, field as dataclass_field
 from threading import RLock
+from typing import Any, Callable, Dict, List, Optional, Type
 
 
 @dataclass

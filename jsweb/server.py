@@ -1,5 +1,7 @@
 import logging
+
 import uvicorn
+
 from jsweb.logging_config import setup_logging
 from jsweb.utils import get_local_ip
 

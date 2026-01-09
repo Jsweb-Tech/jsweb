@@ -1,7 +1,8 @@
-import secrets
 import logging
-from .static import serve_static
+import secrets
+
 from .response import Forbidden
+from .static import serve_static
 
 logger = logging.getLogger(__name__)
 

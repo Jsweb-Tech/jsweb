@@ -2,14 +2,15 @@
 DTO models - Pydantic internally, jsweb API externally
 """
 
+import inspect
 from typing import Any, Dict, List, Optional, Type, Union, get_type_hints
+
 from pydantic import (
     BaseModel as PydanticBaseModel,
+    ConfigDict,
     Field as PydanticField,
     ValidationError,
 )
-from pydantic import ConfigDict
-import inspect
 
 
 class JswebBaseModel(PydanticBaseModel):

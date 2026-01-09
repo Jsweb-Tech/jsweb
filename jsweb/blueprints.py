@@ -1,4 +1,4 @@
-from typing import List, Tuple, Callable, Optional
+from typing import Callable, List, Optional, Tuple
 
 
 class Blueprint:

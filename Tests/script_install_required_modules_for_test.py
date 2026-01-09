@@ -1,7 +1,7 @@
-import subprocess
-import sys
 import importlib
 import os
+import subprocess
+import sys
 
 
 def install_module(module_name):

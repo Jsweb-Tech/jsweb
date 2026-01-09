@@ -1,6 +1,7 @@
 """Tests for jsweb routing system."""
 
 import pytest
+
 from jsweb.routing import Router
 
 

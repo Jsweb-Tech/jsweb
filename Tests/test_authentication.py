@@ -32,7 +32,7 @@ def test_user_model():
 def test_user_authentication():
     """Test user authentication workflow."""
     try:
-        from jsweb.security import hash_password, check_password
+        from jsweb.security import check_password, hash_password
 
         password = "secure_password_123"
         hashed = hash_password(password)
@@ -234,8 +234,9 @@ def test_authentication_middleware():
 def test_jwt_token_support():
     """Test JWT token support (if available)."""
     try:
-        import jwt
         from datetime import datetime, timedelta
+
+        import jwt
 
         secret = "test-secret"
         payload = {
@@ -282,7 +283,7 @@ def test_session_timeout():
 def test_password_reset_flow():
     """Test password reset workflow."""
     try:
-        from jsweb.security import hash_password, generate_secure_token
+        from jsweb.security import generate_secure_token, hash_password
 
         # Step 1: Generate reset token
         reset_token = generate_secure_token()

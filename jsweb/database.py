@@ -7,8 +7,8 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
-    create_engine,
     UniqueConstraint,
+    create_engine,
 )
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.inspection import inspect

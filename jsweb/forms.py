@@ -1,5 +1,6 @@
-from .validators import ValidationError
 from markupsafe import Markup
+
+from .validators import ValidationError
 
 
 class Label:

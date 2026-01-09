@@ -1,8 +1,8 @@
 """Pytest configuration and shared fixtures for jsweb tests."""
 
-import sys
-from pathlib import Path
 from io import BytesIO
+from pathlib import Path
+import sys
 
 import pytest
 

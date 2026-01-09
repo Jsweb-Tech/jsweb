@@ -38,7 +38,7 @@ def test_csrf_token_validation():
 def test_password_hashing():
     """Test password hashing functionality."""
     try:
-        from jsweb.security import hash_password, check_password
+        from jsweb.security import check_password, hash_password
 
         password = "mySecurePassword123!"
         hashed = hash_password(password)
@@ -71,7 +71,7 @@ def test_password_hash_unique():
 def test_password_verification_fails_for_wrong_password():
     """Test that password verification fails for incorrect password."""
     try:
-        from jsweb.security import hash_password, check_password
+        from jsweb.security import check_password, hash_password
 
         password = "correctpassword"
         wrong_password = "wrongpassword"
@@ -106,8 +106,9 @@ def test_secure_random_generation():
 def test_token_expiration():
     """Test token expiration functionality."""
     try:
-        from jsweb.security import generate_token_with_expiry, verify_token
         import time
+
+        from jsweb.security import generate_token_with_expiry, verify_token
 
         token = generate_token_with_expiry(expiry_seconds=1)
         assert token is not None

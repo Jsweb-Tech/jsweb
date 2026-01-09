@@ -1,7 +1,7 @@
 import asyncio
 from functools import wraps
 
-from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignature
+from itsdangerous import BadTimeSignature, SignatureExpired, URLSafeTimedSerializer
 
 from .response import redirect, url_for
 

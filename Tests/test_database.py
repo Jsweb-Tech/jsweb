@@ -20,7 +20,7 @@ def test_database_connection():
 @pytest.mark.database
 def test_sqlalchemy_import():
     """Test that SQLAlchemy is available."""
-    from sqlalchemy import create_engine, Column, Integer, String
+    from sqlalchemy import Column, Integer, String, create_engine
 
     assert create_engine is not None
     assert Column is not None
@@ -53,7 +53,7 @@ def test_model_definition():
 def test_model_relationships():
     """Test model relationship definitions."""
     try:
-        from sqlalchemy import Column, Integer, String, ForeignKey
+        from sqlalchemy import Column, ForeignKey, Integer, String
         from sqlalchemy.orm import declarative_base, relationship
 
         Base = declarative_base()
@@ -99,7 +99,7 @@ def test_database_session():
 def test_model_validation():
     """Test model field validation."""
     try:
-        from sqlalchemy import Column, Integer, String, CheckConstraint
+        from sqlalchemy import CheckConstraint, Column, Integer, String
         from sqlalchemy.orm import declarative_base
 
         Base = declarative_base()
@@ -158,7 +158,7 @@ def test_model_inheritance():
 def test_model_indexes():
     """Test model field indexing."""
     try:
-        from sqlalchemy import Column, Integer, String, Index
+        from sqlalchemy import Column, Index, Integer, String
         from sqlalchemy.orm import declarative_base
 
         Base = declarative_base()
@@ -199,9 +199,10 @@ def test_model_constraints():
 def test_model_default_values():
     """Test model default values."""
     try:
-        from sqlalchemy import Column, Integer, String, DateTime
-        from sqlalchemy.orm import declarative_base
         from datetime import datetime
+
+        from sqlalchemy import Column, DateTime, Integer, String
+        from sqlalchemy.orm import declarative_base
 
         Base = declarative_base()
 
@@ -265,9 +266,10 @@ def test_model_repr():
 def test_enum_field():
     """Test enum field type."""
     try:
-        from sqlalchemy import Column, Integer, String, Enum
-        from sqlalchemy.orm import declarative_base
         import enum
+
+        from sqlalchemy import Column, Enum, Integer, String
+        from sqlalchemy.orm import declarative_base
 
         Base = declarative_base()
 
@@ -291,7 +293,7 @@ def test_enum_field():
 def test_json_field():
     """Test JSON field type."""
     try:
-        from sqlalchemy import Column, Integer, JSON
+        from sqlalchemy import JSON, Column, Integer
         from sqlalchemy.orm import declarative_base
 
         Base = declarative_base()
@@ -331,7 +333,7 @@ def test_text_field():
 def test_many_to_many_relationship():
     """Test many-to-many relationship."""
     try:
-        from sqlalchemy import Column, Integer, String, ForeignKey, Table
+        from sqlalchemy import Column, ForeignKey, Integer, String, Table
         from sqlalchemy.orm import declarative_base, relationship
 
         Base = declarative_base()

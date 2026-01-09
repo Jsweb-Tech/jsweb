@@ -3,10 +3,10 @@ import getpass
 import importlib.util
 import logging
 import os
+import secrets
 import shutil
 import socket
 import sys
-import secrets
 
 from alembic import command
 from alembic.autogenerate import produce_migrations
@@ -297,9 +297,9 @@ def has_model_changes(database_url, metadata):
     Returns:
         bool: True if changes are detected, False otherwise.
     """
-    from sqlalchemy import create_engine
-    from alembic.runtime.migration import MigrationContext
     from alembic.autogenerate import compare_metadata
+    from alembic.runtime.migration import MigrationContext
+    from sqlalchemy import create_engine
 
     engine = create_engine(database_url)
     with engine.connect() as conn:
@@ -553,6 +553,7 @@ def cli():
         config = load_config()
         try:
             import models
+
             from jsweb.database import init_db
 
             init_db(config.DATABASE_URL)

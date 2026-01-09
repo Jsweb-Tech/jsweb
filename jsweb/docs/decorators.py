@@ -4,12 +4,13 @@ Decorators for API documentation
 These decorators allow developers to add rich OpenAPI documentation to their routes.
 """
 
-from typing import Type, Dict, Any, List
+from typing import Any, Dict, List, Type
+
 from .registry import (
-    openapi_registry,
-    ResponseMetadata,
-    RequestBodyMetadata,
     ParameterMetadata,
+    RequestBodyMetadata,
+    ResponseMetadata,
+    openapi_registry,
 )
 
 
