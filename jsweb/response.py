@@ -316,7 +316,7 @@ class Forbidden(Response):
         super().__init__(body, status_code=403, content_type="text/html")
 
 
-def render(req, template_name: str, context: dict = None) -> "HTMLResponse":
+def render(req, template_name: str, context: dict = None) -> HTMLResponse:
     """
     Renders a Jinja2 template into an HTMLResponse.
 
